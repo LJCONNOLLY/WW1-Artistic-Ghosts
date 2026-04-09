@@ -16,17 +16,16 @@ body {
   overflow: hidden;
 }
 canvas#starCanvas {
-  display: block;
+  position: fixed;
+  inset: 0;
   width: 100vw;
   height: 100vh;
+  z-index: 0;
 }
 #mainView {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
+  inset: 0;
+  z-index: 1;
 }
 nav {
   position: fixed;
@@ -52,39 +51,48 @@ nav button:hover {
 }
 nav button.active { color: #ffd700; }
 #svgContainer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none; /* SVG bg passes through; children override */
+  overflow: visible;
 }
-#svgContainer line {
+#svgContainer line.conn-visual {
   stroke: rgba(255, 255, 200, 0.3);
   stroke-width: 1;
   transition: stroke 0.3s;
+  pointer-events: none;
 }
-#svgContainer line:hover {
-  stroke: rgba(255, 255, 200, 0.8);
+#svgContainer line.conn-hit {
+  stroke: rgba(255,255,255,0.001);
+  stroke-width: 20;
+  pointer-events: all;
   cursor: pointer;
-  pointer-events: auto;
+}
+#svgContainer line.conn-hit:hover + line.conn-visual,
+#svgContainer line.conn-visual.hovered {
+  stroke: rgba(255, 255, 200, 0.85);
 }
 #gallery {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
 }
 .artwork-card {
   position: absolute;
   width: 220px;
-  background: rgba(20, 20, 20, 0.8);
+  background: rgba(20, 20, 20, 0.85);
   border: 1px solid rgba(255, 255, 200, 0.2);
   border-radius: 4px;
   padding: 12px;
   cursor: pointer;
-  transition: transform 0.5s ease, box-shadow 0.3s, opacity 0.5s;
+  pointer-events: all;
+  transition: box-shadow 0.3s, opacity 0.5s;
   opacity: 1;
+  z-index: 4;
 }
 .artwork-card:hover {
   box-shadow: 0 0 20px rgba(255, 255, 200, 0.4);
@@ -110,21 +118,15 @@ nav button.active { color: #ffd700; }
   margin-bottom: 0.4rem;
 }
 #themesView, #aboutView {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  inset: 0;
   display: none;
-  opacity: 0;
-  transition: opacity 0.5s;
-  z-index: 15;
+  z-index: 5;
   overflow-y: auto;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(0, 0, 0, 0.96);
   padding: 5rem 2rem 2rem 2rem;
-  animation: fadeIn 0.5s;
 }
-#themesView.visible, #aboutView.visible { display: block; opacity: 1; }
+#themesView.visible, #aboutView.visible { display: block; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .themes-header {
   font-family: 'Cormorant Garamond', serif;
@@ -422,26 +424,37 @@ function initGallery() {
   drawConnections();
 }
 
+function getCardCenter(idx) {
+  const pos = cardPositions[idx];
+  return {
+    x: pos.x * window.innerWidth / 100,
+    y: pos.y * window.innerHeight / 100
+  };
+}
+
 function drawConnections() {
   svg.innerHTML = '';
   CONNECTIONS.forEach(conn => {
-    const card1 = gallery.children[conn.art1];
-    const card2 = gallery.children[conn.art2];
-    if (!card1 || !card2) return;
-    
-    const x1 = cardPositions[conn.art1].x * canvas.width / 100 + 110;
-    const y1 = cardPositions[conn.art1].y * canvas.height / 100 + 90;
-    const x2 = cardPositions[conn.art2].x * canvas.width / 100 + 110;
-    const y2 = cardPositions[conn.art2].y * canvas.height / 100 + 90;
-    
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', x1);
-    line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2);
-    line.setAttribute('y2', y2);
-    line.dataset.connIdx = CONNECTIONS.indexOf(conn);
-    line.addEventListener('click', () => openConnectionModal(conn));
-    svg.appendChild(line);
+    const p1 = getCardCenter(conn.art1);
+    const p2 = getCardCenter(conn.art2);
+
+    // Invisible wide hit line for interaction
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    hit.setAttribute('x1', p1.x); hit.setAttribute('y1', p1.y);
+    hit.setAttribute('x2', p2.x); hit.setAttribute('y2', p2.y);
+    hit.classList.add('conn-hit');
+    hit.addEventListener('click', () => openConnectionModal(conn));
+    hit.addEventListener('mouseenter', () => vis.classList.add('hovered'));
+    hit.addEventListener('mouseleave', () => vis.classList.remove('hovered'));
+
+    // Visible line
+    const vis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    vis.setAttribute('x1', p1.x); vis.setAttribute('y1', p1.y);
+    vis.setAttribute('x2', p2.x); vis.setAttribute('y2', p2.y);
+    vis.classList.add('conn-visual');
+
+    svg.appendChild(hit);
+    svg.appendChild(vis);
   });
 }
 
