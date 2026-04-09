@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haunted Nations: The Modern Ghost in Post-WWI Art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Spectral', serif;
+  overflow: hidden;
+}
+canvas#starCanvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+#openingView {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  z-index: 50;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+  cursor: crosshair;
+}
+#openingView.hidden { opacity: 0; pointer-events: none; }
+.opening-quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 300;
+  text-align: center;
+  max-width: 80%;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  font-style: italic;
+}
+.opening-attribution {
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: #ccc;
+  margin-bottom: 3rem;
+}
+.opening-instruction {
+  font-size: 0.85rem;
+  color: #999;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+#mainView {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+  z-index: 10;
+}
+#mainView.visible { opacity: 1; pointer-events: auto; }
+nav {
+  position: fixed;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  gap: 2rem;
+  z-index: 40;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+}
+nav button {
+  background: none;
+  border: none;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.3s, text-shadow 0.3s;
+  padding: 0.5rem 1rem;
+}
+nav button:hover {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 200, 0.6);
+}
+nav button.active { color: #ffd700; }
+#svgContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+#svgContainer line {
+  stroke: rgba(255, 255, 200, 0.3);
+  stroke-width: 1;
+  transition: stroke 0.3s;
+}
+#svgContainer line:hover {
+  stroke: rgba(255, 255, 200, 0.8);
+  cursor: pointer;
+  pointer-events: auto;
+}
+#gallery {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.artwork-card {
+  position: absolute;
+  width: 220px;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(255, 255, 200, 0.2);
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  transition: transform 0.5s ease, box-shadow 0.3s, opacity 0.5s;
+  opacity: 1;
+}
+.artwork-card:hover {
+  box-shadow: 0 0 20px rgba(255, 255, 200, 0.4);
+  transform: scale(1.05);
+}
+.artwork-card.dimmed { opacity: 0.3; transform: scale(0.95); }
+.artwork-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 2px;
+  margin-bottom: 0.8rem;
+}
+.artwork-info {
+  font-size: 0.8rem;
+  color: #ccc;
+  line-height: 1.5;
+}
+.artwork-info .title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: #fff;
+  margin-bottom: 0.4rem;
+}
+#themesView, #aboutView {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s;
+  z-index: 15;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.95);
+  padding: 5rem 2rem 2rem 2rem;
+  animation: fadeIn 0.5s;
+}
+#themesView.visible, #aboutView.visible { display: block; opacity: 1; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.themes-header {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+.bubble-chart {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+.theme-bubble {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 200, 0.1);
+  border: 1px solid rgba(255, 255, 200, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.85rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+.theme-bubble:hover {
+  background: rgba(255, 255, 200, 0.2);
+  transform: scale(1.1);
+}
+.contemporary-section {
+  max-width: 700px;
+  margin: 3rem auto;
+  padding: 2rem;
+  border-left: 2px solid rgba(255, 255, 200, 0.3);
+  padding-left: 1.5rem;
+}
+.contemporary-section h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.modal.visible {
+  display: flex;
+  opacity: 1;
+}
+.modal-content {
+  background: #111;
+  border: 1px solid rgba(255, 255, 200, 0.2);
+  border-radius: 4px;
+  padding: 2rem;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.modal-close:hover { color: #fff; }
+.artwork-modal-image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 2px;
+  margin-bottom: 1.5rem;
+}
+.artwork-modal-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: #bbb;
+}
+.artwork-modal-meta strong { display: block; color: #fff; margin-bottom: 0.2rem; }
+.ghost-types {
+  margin: 1.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+.ghost-tag {
+  background: rgba(255, 255, 200, 0.15);
+  border: 1px solid rgba(255, 255, 200, 0.3);
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  color: #ddd;
+}
+.ghost-tag.shared { background: rgba(255, 215, 0, 0.15); border-color: rgba(255, 215, 0, 0.4); }
+.artwork-modal-notes {
+  margin: 1.5rem 0;
+  line-height: 1.6;
+  color: #bbb;
+  font-size: 0.95rem;
+}
+.artwork-modal-source {
+  margin-top: 1.5rem;
+}
+.source-btn {
+  background: rgba(255, 255, 200, 0.1);
+  border: 1px solid rgba(255, 255, 200, 0.3);
+  color: #ddd;
+  padding: 0.7rem 1.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+.source-btn:hover {
+  background: rgba(255, 255, 200, 0.2);
+  color: #fff;
+}
+.connection-thumbnails {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+.connection-thumb {
+  width: 150px;
+  text-align: center;
+}
+.connection-thumb img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 2px;
+  margin-bottom: 0.5rem;
+}
+.connection-thumb p { font-size: 0.8rem; color: #bbb; }
+.connection-analysis {
+  line-height: 1.6;
+  color: #bbb;
+  margin-bottom: 1.5rem;
+}
+.filter-indicator {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  font-size: 0.85rem;
+  color: #999;
+  max-width: 200px;
+  text-align: right;
+}
+.filter-indicator.active { color: #ffd700; }
+</style>
+</head>
+<body>
+<canvas id="starCanvas"></canvas>
+<div id="openingView">
+  <div class="opening-quote">"In the aftermath of war, the dead return to haunt the living—not as spirits seeking vengeance, but as witnesses to what was lost."</div>
+  <div class="opening-attribution">— Curated Exhibition</div>
+  <div class="opening-instruction">Click to enter</div>
+</div>
+<div id="mainView">
+  <nav>
+    <button data-view="constellation" class="nav-btn active">Constellation</button>
+    <button data-view="themes" class="nav-btn">Overarching Themes</button>
+    <button data-view="about" class="nav-btn">About</button>
+  </nav>
+  <svg id="svgContainer"></svg>
+  <div id="gallery"></div>
+  <div id="themesView"></div>
+  <div id="aboutView"></div>
+  <div class="filter-indicator"></div>
+</div>
+<div id="artworkModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close">&times;</button>
+    <img class="artwork-modal-image" src="" alt="">
+    <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; margin-bottom: 0.5rem;"></div>
+    <div class="artwork-modal-meta"></div>
+    <div class="ghost-types"></div>
+    <div class="artwork-modal-notes"></div>
+    <div class="artwork-modal-source"></div>
+  </div>
+</div>
+<div id="connectionModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close">&times;</button>
+    <div class="connection-thumbnails"></div>
+    <div class="connection-analysis"></div>
+    <div class="ghost-types" style="justify-content: center;"></div>
+  </div>
+</div>
+<script>
+const ARTWORKS = [
+  {id: 0, title: 'Menin Gate at Midnight', artist: 'Will Longstaff', year: 1927, country: 'Australia', alliance: 'Allied', medium: 'Oil on canvas', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Will_Longstaff_-_Menin_Gate_at_Midnight_1927.jpg/800px-Will_Longstaff_-_Menin_Gate_at_Midnight_1927.jpg', source: 'https://www.awm.gov.au/collection/C172234', ghostTypes: ['Landscape Haunting', 'Mass Haunting', 'Literal Specter'], notes: '[NOTES] This painting captures the spectral forms of fallen soldiers rising from the Menin Gate memorial at Ypres, Belgium. Longstaff's ghosts are rendered as ethereal, glowing forms—literal apparitions that materialize from the landscape itself, merging individual sacrifice with collective haunting. The work fuses memorial architecture with supernatural vision, suggesting that the dead inhabit the very stones built to commemorate them.'},
+  {id: 1, title: 'Ghosts of Vimy Ridge', artist: 'Will Longstaff', year: 1931, country: 'Australia/Canada', alliance: 'Allied', medium: 'Oil on canvas', image: 'https://www.warmuseum.ca/boutique/wp-content/uploads/2019/09/252027.jpg', source: 'https://www.ourcommons.ca/heritage/en/collection/22632', ghostTypes: ['Landscape Haunting', 'Mass Haunting', 'Literal Specter'], notes: '[NOTES] A companion to Menin Gate, this painting depicts Canadian and Allied soldiers as pale, luminous phantoms emerging from the ridge where one of the war's bloodiest battles was fought. The landscape itself becomes a medium for haunting—the barren ground erupts with ghostly forms, suggesting that the battlefield's topography records trauma at a physical level, and that the earth itself remembers.'},
+  {id: 2, title: 'Ghosts in a Tree', artist: 'Franz Sedlacek', year: 1933, country: 'Austria', alliance: 'Central Powers', medium: 'Oil on wood', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Franz_Sedlacek_Geister_auf_einem_Baum_1933.jpg/400px-Franz_Sedlacek_Geister_auf_einem_Baum_1933.jpg', source: 'https://flashbak.com/franz-sedlaceks-ghosts-in-a-tree-watch-over-austria-between-the-wars-464280/', ghostTypes: ['Literal Specter', 'Landscape Haunting', 'Folk/Naive'], notes: '[NOTES] Sedlacek's painting invokes an older, folk tradition of hauntings—ghosts perch and nest in a twisted tree, rendered in a expressionist, almost naive style. This is haunting as intimacy and observation rather than sublime spectacle. The ghosts are smaller, more domestic, watching over the Austrian landscape like protective or accusing spirits rooted in local tradition rather than nationalist memorial.'},
+  {id: 3, title: 'Soldiers Marching Past Ruined Farm Buildings, Haunted by the Ghost of a Comrade, Western Front', artist: 'Cecil C.P. Lawson', year: 1918, country: 'England', alliance: 'Allied', medium: 'Oil on board', image: 'https://artuk.org/discover/artworks/soldiers-marching-past-ruined-farm-buildings-haunted-by-the-ghost-of-a-comrade-western-front-182756', source: 'https://collection.nam.ac.uk/detail.php?acc=1989-04-133-1', ghostTypes: ['Literal Specter', 'Comrade Ghost', 'Domestic Haunting'], notes: '[NOTES] Lawson's work presents haunting as intimate and immediate—a single fallen comrade's ghost walks alongside living soldiers on the march. This is not monumental or collective, but personal: the specter of a friend, conjured by grief and survival guilt. The ruined farmhouse and devastated landscape frame this intimate haunting, suggesting that war's ghosts are often encountered in small, localized moments.'},
+  {id: 4, title: 'Les Fantômes (The Phantoms)', artist: 'Paul Landowski', year: 1935, country: 'France', alliance: 'Allied', medium: 'Granite sculpture', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Les_Fant%C3%B4mes%2C_Butte_de_Chalmont%2C_Oulchy-le-Ch%C3%A2teau.jpg/800px-Les_Fant%C3%B4mes%2C_Butte_de_Chalmont%2C_Oulchy-le-Ch%C3%A2teau.jpg', source: 'https://www.paul-landowski.com/en/portfolio/les-fantomes/', ghostTypes: ['Mass Haunting', 'Memorial', 'Collective Ghost'], notes: '[NOTES] Landowski's monumental granite sculpture at the Butte de Chalmont embodies the collective dead as abstract yet bodily presences—tall, columnar forms wrapped in drapery, faceless and mournful. This phantom collective is memorialized not as spectral illusion but as stone permanence. The work asks: is the haunting in the ghost or in the monument that refuses to let it disappear?'},
+  {id: 5, title: 'The Ghosts of the Slain', artist: 'Joseph Southall', year: 1915, country: 'England', alliance: 'Allied', medium: 'Woodcut illustrations (pamphlet)', image: 'https://quakertheology.org/wp-content/uploads/Southall-ghosts-of-the-slain-1.jpg', source: 'https://quakertheology.org/joseph-southall-the-ghosts-of-the-slain/', ghostTypes: ['Pacifist Critique', 'Ghost as Witness', 'Mass Haunting'], notes: '[NOTES] Southall, a Quaker pacifist, illustrated a pamphlet using woodcut technique to depict war's dead returning as accusatory ghosts—not mourned spirits but witnesses and judges. His ghosts hover over the living, embodying conscience and condemnation. This tradition treats the ghost not as supernatural phenomenon but as moral presence: the returning dead as indictment of war itself.'}
+];
+
+const CONNECTIONS = [
+  {art1: 0, art2: 1, analysis: '[CONNECTION TEXT] These companion paintings by Longstaff form a diptych of landscape haunting across the Commonwealth. Both depict literal specters rising from memorial sites, merging the Gallipoli/Western Front experience with British imperial memory. The haunting is vast, collective, and inscribed into geography.'},
+  {art1: 0, art2: 4, analysis: '[CONNECTION TEXT] Both works memorialize mass death through spectral form—Longstaff via ethereal figuration, Landowski via monumental abstraction. They share a vision of the battlefield and memorial site as sites of permanent haunting, where the dead become inseparable from the landscape and monument.'},
+  {art1: 1, art2: 4, analysis: '[CONNECTION TEXT] National memorial haunting: both capture the moment when collective loss becomes collective remembrance. The ghosts are nationalized, institutionalized, made permanent through landscape and stone.'},
+  {art1: 2, art2: 4, analysis: '[CONNECTION TEXT] A fascinating contrast: Sedlacek's folk-tradition ghosts versus Landowski's monumental collective. Both suggest haunting persists across the Allied-Central divide, but Central Europe's ghosts remain intimate and rooted, while Allied memorials monumentalize theirs.'},
+  {art1: 2, art2: 5, analysis: '[CONNECTION TEXT] Ghost as observer and accuser: Sedlacek's ghosts perch and watch; Southall's judge and indict. Both treat spirits as active presences that assess the living world rather than passive objects of mourning.'},
+  {art1: 3, art2: 0, analysis: '[CONNECTION TEXT] English Allied tradition: Lawson's intimate ghost of a comrade marching alongside living soldiers, Longstaff's monumental spectral collective at the gate. Both explore how the Western Front ghost haunts the English-speaking world.'},
+  {art1: 3, art2: 5, analysis: '[CONNECTION TEXT] English pacifist witness: both Lawson and Southall render ghosts as moral presences—accusing, demanding remembrance, refusing to be forgotten. The ghost becomes a voice for peace.'}
+];
+
+// Star Canvas Animation
+const canvas = document.getElementById('starCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const stars = [];
+function initStars() {
+  for (let i = 0; i < 150; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5,
+      opacity: Math.random() * 0.6 + 0.2,
+      twinkleSpeed: Math.random() * 0.015 + 0.005,
+      twinklePhase: Math.random() * Math.PI * 2
+    });
+  }
+}
+initStars();
+
+function animateStars() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(star => {
+    star.twinklePhase += star.twinkleSpeed;
+    const opacity = star.opacity + Math.sin(star.twinklePhase) * 0.3;
+    ctx.fillStyle = `rgba(255, 255, 200, ${Math.max(0, opacity)})`;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  requestAnimationFrame(animateStars);
+}
+animateStars();
+
+// Gallery and UI Logic
+const opening = document.getElementById('openingView');
+const main = document.getElementById('mainView');
+const gallery = document.getElementById('gallery');
+const themesView = document.getElementById('themesView');
+const aboutView = document.getElementById('aboutView');
+const svg = document.getElementById('svgContainer');
+const filterIndicator = document.querySelector('.filter-indicator');
+
+let currentView = 'constellation';
+let cardPositions = {};
+let activeTheme = null;
+
+function initGallery() {
+  const positions = [
+    {x: 10, y: 15}, {x: 60, y: 20}, {x: 85, y: 40},
+    {x: 25, y: 60}, {x: 75, y: 75}, {x: 45, y: 85}
+  ];
+  
+  ARTWORKS.forEach((art, idx) => {
+    const card = document.createElement('div');
+    card.className = 'artwork-card';
+    card.innerHTML = `<img src="${art.image}" alt="${art.title}"><div class="artwork-info"><div class="title">${art.title}</div><div>${art.artist} (${art.year})</div><div>${art.country}</div></div>`;
+    card.style.left = positions[idx].x + '%';
+    card.style.top = positions[idx].y + '%';
+    card.style.transform = 'translate(-50%, -50%)';
+    cardPositions[idx] = {x: positions[idx].x, y: positions[idx].y, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3};
+    
+    card.addEventListener('click', () => openArtworkModal(idx));
+    gallery.appendChild(card);
+  });
+  
+  drawConnections();
+}
+
+function drawConnections() {
+  svg.innerHTML = '';
+  CONNECTIONS.forEach(conn => {
+    const card1 = gallery.children[conn.art1];
+    const card2 = gallery.children[conn.art2];
+    if (!card1 || !card2) return;
+    
+    const x1 = cardPositions[conn.art1].x * canvas.width / 100 + 110;
+    const y1 = cardPositions[conn.art1].y * canvas.height / 100 + 90;
+    const x2 = cardPositions[conn.art2].x * canvas.width / 100 + 110;
+    const y2 = cardPositions[conn.art2].y * canvas.height / 100 + 90;
+    
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.dataset.connIdx = CONNECTIONS.indexOf(conn);
+    line.addEventListener('click', () => openConnectionModal(conn));
+    svg.appendChild(line);
+  });
+}
+
+function animateCards() {
+  const cards = gallery.querySelectorAll('.artwork-card');
+  cards.forEach((card, idx) => {
+    const pos = cardPositions[idx];
+    pos.x += pos.vx;
+    pos.y += pos.vy;
+    if (pos.x < 5) { pos.x = 5; pos.vx *= -1; }
+    if (pos.x > 95) { pos.x = 95; pos.vx *= -1; }
+    if (pos.y < 5) { pos.y = 5; pos.vy *= -1; }
+    if (pos.y > 95) { pos.y = 95; pos.vy *= -1; }
+    card.style.left = pos.x + '%';
+    card.style.top = pos.y + '%';
+  });
+  drawConnections();
+  requestAnimationFrame(animateCards);
+}
+
+function openArtworkModal(idx) {
+  const art = ARTWORKS[idx];
+  const modal = document.getElementById('artworkModal');
+  modal.querySelector('.artwork-modal-image').src = art.image;
+  modal.querySelector('[style*="font-size: 1.5rem"]').textContent = art.title;
+  modal.querySelector('.artwork-modal-meta').innerHTML = `<div><strong>Artist</strong>${art.artist}</div><div><strong>Year</strong>${art.year}</div><div><strong>Country</strong>${art.country}</div><div><strong>Medium</strong>${art.medium}</div><div><strong>Alliance</strong>${art.alliance}</div>`;
+  modal.querySelector('.ghost-types').innerHTML = art.ghostTypes.map(gt => `<div class="ghost-tag">${gt}</div>`).join('');
+  modal.querySelector('.artwork-modal-notes').textContent = art.notes;
+  modal.querySelector('.artwork-modal-source').innerHTML = `<a href="${art.source}" target="_blank" class="source-btn">View Source</a>`;
+  modal.classList.add('visible');
+}
+
+function openConnectionModal(conn) {
+  const art1 = ARTWORKS[conn.art1];
+  const art2 = ARTWORKS[conn.art2];
+  const modal = document.getElementById('connectionModal');
+  modal.querySelector('.connection-thumbnails').innerHTML = `<div class="connection-thumb"><img src="${art1.image}" alt=""><p>${art1.title}</p></div><div class="connection-thumb"><img src="${art2.image}" alt=""><p>${art2.title}</p></div>`;
+  modal.querySelector('.connection-analysis').textContent = conn.analysis;
+  const shared = art1.ghostTypes.filter(gt => art2.ghostTypes.includes(gt));
+  modal.querySelector('[style*="justify-content: center"]').innerHTML = shared.map(gt => `<div class="ghost-tag shared">${gt}</div>`).join('') || '<div style="color: #999; font-size: 0.9rem;">No shared ghost types</div>';
+  modal.classList.add('visible');
+}
+
+document.querySelectorAll('.modal-close').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.target.closest('.modal').classList.remove('visible');
+  });
+});
+
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('visible');
+  });
+});
+
+opening.addEventListener('click', () => {
+  opening.classList.add('hidden');
+  main.classList.add('visible');
+  setTimeout(() => {
+    initGallery();
+    animateCards();
+    initThemesView();
+    initAboutView();
+  }, 100);
+});
+
+function showView(view) {
+  currentView = view;
+  const constellationElements = [gallery, document.getElementById('svgContainer')];
+  constellationElements.forEach(el => el.style.display = view === 'constellation' ? 'block' : 'none');
+  themesView.classList.toggle('visible', view === 'themes');
+  aboutView.classList.toggle('visible', view === 'about');
+  filterIndicator.style.display = 'none';
+  activeTheme = null;
+  document.querySelectorAll('.artwork-card').forEach(card => card.classList.remove('dimmed'));
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => showView(e.target.dataset.view));
+});
+
+function initThemesView() {
+  const allThemes = [...new Set(ARTWORKS.flatMap(art => art.ghostTypes))];
+  themesView.innerHTML = '<div class="themes-header">Overarching Themes: Ghost Typologies</div><div class="bubble-chart">' + allThemes.map(theme => `<div class="theme-bubble" data-theme="${theme}">${theme}</div>`).join('') + '</div><div class="contemporary-section"><h3>The Modern Ghost Today</h3><p>[CONTEMPORARY TEXT] The spectral tropes that haunted post-WWI art persist in contemporary culture. From war memorials to digital afterlives, from haunted heritage sites to the ghosts of colonialism, our modern moment grapples with the return of historical trauma. These images remind us that some pasts refuse to be buried. The dead, it seems, are always watching.</p></div>';
+  
+  document.querySelectorAll('.theme-bubble').forEach(bubble => {
+    bubble.addEventListener('click', () => {
+      activeTheme = activeTheme === bubble.dataset.theme ? null : bubble.dataset.theme;
+      const cardsToShow = activeTheme ? ARTWORKS.filter(art => art.ghostTypes.includes(activeTheme)).map(a => ARTWORKS.indexOf(a)) : [];
+      document.querySelectorAll('.artwork-card').forEach((card, idx) => {
+        if (activeTheme) card.classList.toggle('dimmed', !cardsToShow.includes(idx));
+      });
+      filterIndicator.style.display = activeTheme ? 'block' : 'none';
+      filterIndicator.textContent = activeTheme ? `Showing: ${activeTheme}` : '';
+      filterIndicator.classList.toggle('active', !!activeTheme);
+    });
+  });
+}
+
+function initAboutView() {
+  aboutView.innerHTML = '<div class="themes-header">About This Exhibit</div><div class="contemporary-section"><p>Haunted Nations explores how artists across the WWI era visualized and processed collective trauma through the figure of the ghost. Whether as luminous specters rising from memorials, intimate companions haunting the living, or stone monuments refusing forgetting, these ghosts embody the inescapable return of the dead.</p><p>This digital exhibit brings together six major works spanning Allied and Central Powers perspectives, from Australia to Austria, examining how different artistic traditions grappled with the haunting legacies of "the Great War." By mapping thematic connections between artworks, we ask: what does it mean for a nation to be haunted? And what ghosts persist today?</p><p><strong>Curated with archival research</strong> • <strong>Visit the sources</strong> for each artwork by clicking on individual cards</p></div>';
+}
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
