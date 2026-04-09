@@ -20,59 +20,14 @@ canvas#starCanvas {
   width: 100vw;
   height: 100vh;
 }
-#openingView {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #000;
-  z-index: 50;
-  opacity: 1;
-  transition: opacity 0.8s ease;
-  cursor: crosshair;
-}
-#openingView.hidden { opacity: 0; pointer-events: none; }
-.opening-quote {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2.5rem;
-  font-weight: 300;
-  text-align: center;
-  max-width: 80%;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-  font-style: italic;
-}
-.opening-attribution {
-  font-size: 0.9rem;
-  font-weight: 300;
-  color: #ccc;
-  margin-bottom: 3rem;
-}
-.opening-instruction {
-  font-size: 0.85rem;
-  color: #999;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 #mainView {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.8s ease;
   z-index: 10;
 }
-#mainView.visible { opacity: 1; pointer-events: auto; }
 nav {
   position: fixed;
   top: 2rem;
@@ -347,11 +302,6 @@ nav button.active { color: #ffd700; }
 </head>
 <body>
 <canvas id="starCanvas"></canvas>
-<div id="openingView">
-  <div class="opening-quote">"In the aftermath of war, the dead return to haunt the living—not as spirits seeking vengeance, but as witnesses to what was lost."</div>
-  <div class="opening-attribution">— Curated Exhibition</div>
-  <div class="opening-instruction">Click to enter</div>
-</div>
 <div id="mainView">
   <nav>
     <button data-view="constellation" class="nav-btn active">Constellation</button>
@@ -440,8 +390,6 @@ function animateStars() {
 animateStars();
 
 // Gallery and UI Logic
-const opening = document.getElementById('openingView');
-const main = document.getElementById('mainView');
 const gallery = document.getElementById('gallery');
 const themesView = document.getElementById('themesView');
 const aboutView = document.getElementById('aboutView');
@@ -549,16 +497,10 @@ document.querySelectorAll('.modal').forEach(modal => {
   });
 });
 
-opening.addEventListener('click', () => {
-  opening.classList.add('hidden');
-  main.classList.add('visible');
-  setTimeout(() => {
-    initGallery();
-    animateCards();
-    initThemesView();
-    initAboutView();
-  }, 100);
-});
+initGallery();
+animateCards();
+initThemesView();
+initAboutView();
 
 function showView(view) {
   currentView = view;
