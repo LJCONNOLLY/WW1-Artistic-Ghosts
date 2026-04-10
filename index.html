@@ -21,15 +21,16 @@ nav button.active{color:#ffd700}
 #lines .hit{stroke:transparent;stroke-width:24;pointer-events:stroke}
 #lines g:hover .vis{stroke:rgba(255,255,200,0.8);stroke-width:1.5}
 #cards{position:fixed;top:0;left:0;width:100%;height:100%;z-index:20;pointer-events:none}
-.card{position:absolute;width:200px;background:rgba(12,10,20,0.88);border:1px solid rgba(255,255,200,0.18);border-radius:4px;padding:10px;cursor:crosshair;pointer-events:all;transition:box-shadow 0.4s,border-color 0.4s;user-select:none}
+.card{position:absolute;width:320px;background:rgba(12,10,20,0.88);border:1px solid rgba(255,255,200,0.18);border-radius:4px;padding:12px;cursor:grab;pointer-events:all;transition:box-shadow 0.4s,border-color 0.4s;user-select:none}
 .card:hover{box-shadow:0 0 24px rgba(255,255,200,0.3);border-color:rgba(255,255,200,0.5)}
+.card.dragging{cursor:grabbing;box-shadow:0 8px 40px rgba(0,0,0,0.7);border-color:rgba(255,215,0,0.4);transition:none}
 .card.dim{opacity:0.2;pointer-events:none}
 .card.hi{border-color:rgba(255,215,0,0.6);box-shadow:0 0 20px rgba(255,215,0,0.2)}
-.img-wrap{width:100%;height:140px;margin-bottom:0.6rem;position:relative}
-.card img{width:100%;height:140px;object-fit:cover;border-radius:2px;display:block;background:#111}
-.img-ph{width:100%;height:140px;background:#0e0b18;border:1px solid rgba(255,255,200,0.1);border-radius:2px;align-items:center;justify-content:center;text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.78rem;color:rgba(255,255,255,0.25);padding:0.8rem}
-.card .t{font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:#eee;margin-bottom:0.3rem;line-height:1.3}
-.card .m{font-size:0.72rem;color:rgba(255,255,255,0.45);line-height:1.5}
+.img-wrap{width:100%;height:210px;margin-bottom:0.8rem;position:relative}
+.card img{width:100%;height:210px;object-fit:cover;border-radius:2px;display:block;background:#111}
+.img-ph{width:100%;height:210px;background:#0e0b18;border:1px solid rgba(255,255,200,0.1);border-radius:2px;align-items:center;justify-content:center;text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.56rem;color:rgba(255,255,255,0.25);padding:0.8rem}
+.card .t{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#eee;margin-bottom:0.3rem;line-height:1.3}
+.card .m{font-size:1.44rem;color:rgba(255,255,255,0.45);line-height:1.5}
 .overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:40;display:none;background:rgba(0,0,0,0.95);overflow-y:auto;padding:5rem 2rem 3rem}
 .overlay.vis{display:block}
 .overlay h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;text-align:center;margin-bottom:2rem;color:rgba(255,255,255,0.85)}
@@ -58,7 +59,7 @@ nav button.active{color:#ffd700}
 .ct img{width:100%;height:130px;object-fit:cover;border-radius:2px;margin-bottom:0.4rem}
 .ct p{font-size:0.78rem;color:rgba(255,255,255,0.5);text-align:center}
 .ca{font-size:0.9rem;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:1rem;font-style:italic}
-.pill{display:inline-block;border:1px solid;padding:0.15rem 0.5rem;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;margin-left:0.5rem}
+.pill{display:inline-block;border:1px solid;padding:0.15rem 0.5rem;font-size:1.3rem;letter-spacing:0.08em;text-transform:uppercase;margin-left:0.5rem}
 .pill.al{color:rgba(150,180,255,0.7);border-color:rgba(150,180,255,0.3)}
 .pill.cp{color:rgba(255,170,100,0.7);border-color:rgba(255,170,100,0.3)}
 #fi{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:25;display:none;align-items:center;gap:0.6rem;background:rgba(0,0,0,0.8);border:1px solid rgba(255,215,0,0.3);padding:0.35rem 1rem;font-size:0.75rem;color:rgba(255,215,0,0.7);letter-spacing:0.08em}
@@ -180,6 +181,35 @@ const FP=[
 {xa:8,ya:6,xf:0.00007,yf:0.0001,xp:1.9,yp:4.2}
 ];
 
+// ---- DRAG STATE ----
+let dragIdx=null,dragOX=0,dragOY=0,dragMoved=false;
+const pinned=AW.map(()=>null); // {x,y} once dragged
+
+document.addEventListener("mousemove",e=>{
+  if(dragIdx===null)return;
+  const x=e.clientX-dragOX,y=e.clientY-dragOY;
+  if(!dragMoved&&(Math.abs(e.clientX-(pinned[dragIdx]?pinned[dragIdx].x+dragOX:dragOX))>4||Math.abs(e.clientY-(pinned[dragIdx]?pinned[dragIdx].y+dragOY:dragOY))>4))dragMoved=true;
+  pinned[dragIdx]={x,y};
+  cardEls[dragIdx].style.left=x+"px";
+  cardEls[dragIdx].style.top=y+"px";
+});
+document.addEventListener("mouseup",()=>{
+  if(dragIdx!==null){cardEls[dragIdx].classList.remove("dragging");dragIdx=null;}
+});
+document.addEventListener("touchmove",e=>{
+  if(dragIdx===null)return;
+  e.preventDefault();
+  const t=e.touches[0];
+  const x=t.clientX-dragOX,y=t.clientY-dragOY;
+  dragMoved=true;
+  pinned[dragIdx]={x,y};
+  cardEls[dragIdx].style.left=x+"px";
+  cardEls[dragIdx].style.top=y+"px";
+},{passive:false});
+document.addEventListener("touchend",()=>{
+  if(dragIdx!==null){cardEls[dragIdx].classList.remove("dragging");dragIdx=null;}
+});
+
 // ---- CARDS ----
 const cardContainer=document.getElementById("cards");
 let cardEls=[];
@@ -188,7 +218,22 @@ function buildCards(){
   AW.forEach((a,i)=>{
     const d=document.createElement("div");d.className="card";
     d.innerHTML='<div class="img-wrap"><img src="'+a.img+'" alt="'+a.st+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="img-ph" style="display:none">'+a.st+'</div></div><div class="t">'+a.st+'</div><div class="m">'+a.artist+"<br>"+a.year+" · "+a.country+'<br><span class="pill '+(a.alliance==="Allied"?"al":"cp")+'">'+a.alliance+"</span></div>";
-    d.addEventListener("click",()=>openArt(i));
+    d.addEventListener("mousedown",e=>{
+      if(e.button!==0)return;
+      e.preventDefault();
+      dragMoved=false;dragIdx=i;
+      const r=d.getBoundingClientRect();
+      dragOX=e.clientX-r.left;dragOY=e.clientY-r.top;
+      d.classList.add("dragging");
+      d.style.zIndex=100;
+    });
+    d.addEventListener("touchstart",e=>{
+      dragMoved=false;dragIdx=i;
+      const t=e.touches[0],r=d.getBoundingClientRect();
+      dragOX=t.clientX-r.left;dragOY=t.clientY-r.top;
+      d.classList.add("dragging");d.style.zIndex=100;
+    },{passive:true});
+    d.addEventListener("click",()=>{if(!dragMoved)openArt(i)});
     cardContainer.appendChild(d);cardEls.push(d);
   });
 }
@@ -230,8 +275,13 @@ function loop(ts){
     ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle="rgba(255,255,220,"+a.toFixed(3)+")";ctx.fill();
   }
   // float cards
-  const NH=56,CW=200,CH=220;
+  const NH=56,CW=320,CH=340;
   AW.forEach((a,i)=>{
+    if(pinned[i]){
+      cardEls[i].style.left=pinned[i].x+"px";
+      cardEls[i].style.top=pinned[i].y+"px";
+      return;
+    }
     const f=FP[i];
     const bx=a.px*(W-CW);
     const by=NH+a.py*(H-NH-CH);
