@@ -43,7 +43,7 @@ nav button.active{color:#ffd700}
 .overlay h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;text-align:center;margin-bottom:1rem;color:rgba(255,255,255,0.85)}
 #themes .themes-sub{font-size:0.82rem !important;margin-bottom:1.5rem !important}
 .bubbles{display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center;margin-bottom:2rem}
-.bub{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c2 0%,#f2e27a 55%,#c8a94a 100%);border:1px solid rgba(255,243,150,0.7);display:flex;align-items:center;justify-content:center;text-align:center;font-size:1rem;padding:0.8rem;cursor:pointer;transition:all 0.3s;color:#000;box-shadow:0 0 40px rgba(255,240,160,0.3)}
+.bub{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c2 0%,#f2e27a 55%,#c8a94a 100%);border:1px solid rgba(255,243,150,0.7);display:flex;align-items:center;justify-content:center;text-align:center;font-size:1.1rem;padding:0.8rem;cursor:pointer;transition:all 0.3s;color:#000;box-shadow:0 0 40px rgba(255,240,160,0.3)}
 .bub:hover,.bub.act{background:radial-gradient(circle at 35% 30%,#fffadf 0%,#f7ea9a 55%,#d4b85a 100%);border-color:rgba(255,215,0,0.9);color:#000;transform:scale(1.08);box-shadow:0 0 60px rgba(255,240,160,0.55)}
 .about-text p{font-size:0.92rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
 #themeModal .mt{font-size:2.8rem}
@@ -362,7 +362,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   const el=document.getElementById("bubs");
   Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([tag,cnt])=>{
     const b=document.createElement("div");b.className="bub";b.textContent=tag;
-    const sz=180;b.style.width=sz+"px";b.style.height=sz+"px";
+    const sz=220;b.style.width=sz+"px";b.style.height=sz+"px";
     b.addEventListener("click",()=>openTheme(tag));
     el.appendChild(b);
   });
