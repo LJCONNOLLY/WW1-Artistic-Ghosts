@@ -40,15 +40,11 @@ nav button.active{color:#ffd700}
 .card.expanded .card-notes{display:block;font-size:1.1rem}
 .overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:40;display:none;background:rgba(0,0,0,0.95);overflow-y:auto;padding:5rem 2rem 3rem}
 .overlay.vis{display:block}
-.overlay h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;text-align:center;margin-bottom:2rem;color:rgba(255,255,255,0.85)}
-#themes h2{font-size:8rem}
-#themes .themes-sub{font-size:3.28rem !important}
-.bubbles{display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center;margin-bottom:3rem}
-.bub{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c2 0%,#f2e27a 55%,#c8a94a 100%);border:1px solid rgba(255,243,150,0.7);display:flex;align-items:center;justify-content:center;text-align:center;font-size:3.2rem;padding:1rem;cursor:pointer;transition:all 0.3s;color:#000;box-shadow:0 0 60px rgba(255,240,160,0.35)}
-.bub:hover,.bub.act{background:radial-gradient(circle at 35% 30%,#fffadf 0%,#f7ea9a 55%,#d4b85a 100%);border-color:rgba(255,215,0,0.9);color:#000;transform:scale(1.08);box-shadow:0 0 90px rgba(255,240,160,0.6)}
-.contemp{max-width:650px;margin:2rem auto;border-left:2px solid rgba(255,255,200,0.2);padding-left:1.5rem}
-.contemp h3{font-family:'Cormorant Garamond',serif;font-size:5.6rem;margin-bottom:0.8rem;font-weight:300}
-.contemp p{font-size:3.68rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
+.overlay h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;text-align:center;margin-bottom:1rem;color:rgba(255,255,255,0.85)}
+#themes .themes-sub{font-size:0.82rem !important;margin-bottom:1.5rem !important}
+.bubbles{display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center;margin-bottom:2rem}
+.bub{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c2 0%,#f2e27a 55%,#c8a94a 100%);border:1px solid rgba(255,243,150,0.7);display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.8rem;padding:0.6rem;cursor:pointer;transition:all 0.3s;color:#000;box-shadow:0 0 40px rgba(255,240,160,0.3)}
+.bub:hover,.bub.act{background:radial-gradient(circle at 35% 30%,#fffadf 0%,#f7ea9a 55%,#d4b85a 100%);border-color:rgba(255,215,0,0.9);color:#000;transform:scale(1.08);box-shadow:0 0 60px rgba(255,240,160,0.55)}
 .about-text p{font-size:0.92rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
 #themeModal .mt{font-size:2.8rem}
 #themeModal .notes{font-size:1.8rem}
@@ -88,12 +84,8 @@ nav button.active{color:#ffd700}
 
 <div id="themes" class="overlay">
   <h2>Overarching Themes</h2>
-  <p class="themes-sub" style="text-align:center;color:rgba(255,255,255,0.35);margin-bottom:2rem;letter-spacing:0.1em">Ghost typologies across the post-WWI artistic imagination</p>
+  <p class="themes-sub" style="text-align:center;color:rgba(255,255,255,0.35);margin-bottom:2rem;letter-spacing:0.1em">Ghost figures in the art that followed WWI</p>
   <div class="bubbles" id="bubs"></div>
-  <div class="contemp">
-    <h3>The Modern Ghost Today</h3>
-    <p>[CONTEMPORARY TEXT] The spectral tropes that haunted post-WWI art persist in contemporary culture. From war memorials to digital afterlives, from haunted heritage sites to the ghosts of colonialism, our modern moment grapples with the return of historical trauma. These images remind us that some pasts refuse to be buried. The dead, it seems, are always watching.</p>
-  </div>
 </div>
 
 <div id="about" class="overlay">
@@ -370,7 +362,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   const el=document.getElementById("bubs");
   Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([tag,cnt])=>{
     const b=document.createElement("div");b.className="bub";b.textContent=tag;
-    const sz=360+(cnt/max)*200;b.style.width=sz+"px";b.style.height=sz+"px";
+    const sz=116;b.style.width=sz+"px";b.style.height=sz+"px";
     b.addEventListener("click",()=>openTheme(tag));
     el.appendChild(b);
   });
