@@ -362,7 +362,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   const el=document.getElementById("bubs");
   Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([tag,cnt])=>{
     const b=document.createElement("div");b.className="bub";b.textContent=tag;
-    const sz=110+(cnt/max)*30;b.style.width=sz+"px";b.style.height=sz+"px";
+    const sz=116;b.style.width=sz+"px";b.style.height=sz+"px";
     b.addEventListener("click",()=>openTheme(tag));
     el.appendChild(b);
   });
