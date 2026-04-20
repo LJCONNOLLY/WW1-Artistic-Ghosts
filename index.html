@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haunted Nations: The Modern Ghost in Post-WWI Art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:'Spectral',serif;overflow:hidden;width:100vw;height:100vh}
+canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0}
+nav{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;gap:0;padding:1.2rem 2rem;background:linear-gradient(180deg,rgba(0,0,0,0.8)0%,transparent 100%)}
+nav button{background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:'Cormorant Garamond',serif;font-size:1rem;padding:0.4rem 1.2rem;transition:color 0.3s,text-shadow 0.3s;letter-spacing:0.05em}
+nav button:hover{color:#fff;text-shadow:0 0 12px rgba(255,255,200,0.5)}
+nav button.active{color:#ffd700}
+#lines{position:fixed;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none}
+#lines g{pointer-events:all;cursor:crosshair}
+#lines .vis{stroke:rgba(255,255,200,0.25);stroke-width:1;pointer-events:none;transition:stroke 0.3s,stroke-width 0.3s}
+#lines .hit{stroke:transparent;stroke-width:24;pointer-events:stroke}
+#lines g:hover .vis{stroke:rgba(255,255,200,0.8);stroke-width:1.5}
+#cards{position:fixed;top:0;left:0;width:100%;height:100%;z-index:20;pointer-events:none}
+.card{position:absolute;width:260px;background:rgba(12,10,20,0.88);border:1px solid rgba(255,255,200,0.18);border-radius:4px;padding:12px;cursor:grab;pointer-events:all;transition:box-shadow 0.4s,border-color 0.4s;user-select:none;overflow:hidden}
+.card:hover{box-shadow:0 0 24px rgba(255,255,200,0.3);border-color:rgba(255,255,200,0.5)}
+.card.dragging{cursor:grabbing;box-shadow:0 8px 40px rgba(0,0,0,0.7);border-color:rgba(255,215,0,0.4);transition:none}
+.card.dim{opacity:0.2;pointer-events:none}
+.card.hi{border-color:rgba(255,215,0,0.6);box-shadow:0 0 20px rgba(255,215,0,0.2)}
+.img-wrap{width:calc(100% + 24px);height:260px;margin:-12px -12px 0.8rem;position:relative}
+.card img{width:100%;height:260px;object-fit:cover;border-radius:0;display:block;background:#111}
+.img-ph{width:100%;height:260px;background:#0e0b18;border:1px solid rgba(255,255,200,0.1);border-radius:0;align-items:center;justify-content:center;text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.78rem;color:rgba(255,255,255,0.25);padding:0.8rem}
+.card .t{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#eee;margin-bottom:0.4rem;line-height:1.3}
+.card .m{font-size:1.4rem;color:rgba(255,255,255,0.45);line-height:1.6}
+.card-notes{display:none;font-size:0.82rem;color:rgba(255,255,255,0.5);line-height:1.75;margin-top:0.9rem;padding-top:0.8rem;border-top:1px solid rgba(255,255,200,0.12);white-space:pre-wrap;max-height:260px;overflow-y:auto}
+.card.expanded{width:360px;z-index:200}
+.card.expanded .img-wrap,.card.expanded img,.card.expanded .img-ph{height:360px}
+.card.expanded .t{font-size:2.5rem}
+.card.expanded .m{font-size:1.9rem}
+.card.expanded .pill{font-size:1.5rem}
+.card.expanded .card-notes{display:block;font-size:1.1rem}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:40;display:none;background:rgba(0,0,0,0.95);overflow-y:auto;padding:5rem 2rem 3rem}
+.overlay.vis{display:block}
+.overlay h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;text-align:center;margin-bottom:2rem;color:rgba(255,255,255,0.85)}
+.bubbles{display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center;margin-bottom:3rem}
+.bub{border-radius:50%;background:rgba(255,255,200,0.08);border:1px solid rgba(255,255,200,0.25);display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.8rem;padding:1rem;cursor:pointer;transition:all 0.3s;color:rgba(255,255,255,0.7)}
+.bub:hover,.bub.act{background:rgba(255,255,200,0.18);border-color:rgba(255,215,0,0.5);color:#ffd700;transform:scale(1.08)}
+.contemp{max-width:650px;margin:2rem auto;border-left:2px solid rgba(255,255,200,0.2);padding-left:1.5rem}
+.contemp h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;margin-bottom:0.8rem;font-weight:300}
+.contemp p,.about-text p{font-size:0.92rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}
+.modal.vis{display:flex}
+.modal-inner{background:#0c0a14;border:1px solid rgba(255,255,200,0.15);border-radius:4px;padding:1.8rem;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;position:relative}
+.modal-x{position:absolute;top:0.8rem;right:1rem;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.4rem;cursor:pointer;transition:color 0.3s;z-index:2}
+.modal-x:hover{color:#fff}
+.mi{width:100%;max-height:280px;object-fit:cover;border-radius:2px;margin-bottom:1.2rem;display:block}
+.mt{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#eee;margin-bottom:0.5rem;line-height:1.3;padding-right:2rem}
+.mm{display:flex;flex-wrap:wrap;gap:0.3rem 1rem;font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1rem}
+.tags{display:flex;flex-wrap:wrap;gap:0.5rem;margin:1rem 0}
+.tag{background:rgba(255,255,200,0.1);border:1px solid rgba(255,255,200,0.25);padding:0.3rem 0.7rem;border-radius:3px;font-size:0.75rem;color:rgba(255,255,255,0.7)}
+.tag.sh{background:rgba(255,215,0,0.12);border-color:rgba(255,215,0,0.4);color:#ffd700}
+.notes{font-size:0.9rem;color:rgba(255,255,255,0.5);line-height:1.7;margin:1rem 0;font-style:italic;white-space:pre-wrap}
+.srcbtn{display:inline-block;border:1px solid rgba(255,255,200,0.25);padding:0.5rem 1.2rem;color:rgba(255,255,200,0.6);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:all 0.3s}
+.srcbtn:hover{background:rgba(255,255,200,0.08);color:#fff;border-color:rgba(255,255,200,0.5)}
+.ct{display:flex;gap:1rem;margin-bottom:1.5rem}
+.ct>div{flex:1}
+.ct img{width:100%;height:130px;object-fit:cover;border-radius:2px;margin-bottom:0.4rem}
+.ct p{font-size:0.78rem;color:rgba(255,255,255,0.5);text-align:center}
+.ca{font-size:0.9rem;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:1rem;font-style:italic}
+.pill{display:inline-block;border:1px solid;padding:0.15rem 0.5rem;font-size:1.1rem;letter-spacing:0.08em;text-transform:uppercase;margin-left:0.5rem}
+.pill.al{color:rgba(150,180,255,0.7);border-color:rgba(150,180,255,0.3)}
+.pill.cp{color:rgba(255,170,100,0.7);border-color:rgba(255,170,100,0.3)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<nav>
+  <button class="active" data-v="map">Constellation</button>
+  <button data-v="themes">Overarching Themes</button>
+  <button data-v="about">About</button>
+</nav>
+<svg id="lines"></svg>
+<div id="cards"></div>
+
+<div id="themes" class="overlay">
+  <h2>Overarching Themes</h2>
+  <p style="text-align:center;color:rgba(255,255,255,0.35);font-size:0.82rem;margin-bottom:2rem;letter-spacing:0.1em">Ghost typologies across the post-WWI artistic imagination</p>
+  <div class="bubbles" id="bubs"></div>
+  <div class="contemp">
+    <h3>The Modern Ghost Today</h3>
+    <p>[CONTEMPORARY TEXT] The spectral tropes that haunted post-WWI art persist in contemporary culture. From war memorials to digital afterlives, from haunted heritage sites to the ghosts of colonialism, our modern moment grapples with the return of historical trauma. These images remind us that some pasts refuse to be buried. The dead, it seems, are always watching.</p>
+  </div>
+</div>
+
+<div id="about" class="overlay">
+  <h2>About This Exhibit</h2>
+  <div class="about-text" style="max-width:600px;margin:0 auto">
+    <p>Haunted Nations explores how artists across the WWI era visualized and processed collective trauma through the figure of the ghost. Whether as luminous specters rising from memorials, intimate companions haunting the living, or stone monuments refusing forgetting, these ghosts embody the inescapable return of the dead.</p>
+    <p>This digital exhibit brings together six major works spanning Allied and Central Powers perspectives, from Australia to Austria, examining how different artistic traditions grappled with the haunting legacies of the Great War. By mapping thematic connections between artworks, we ask: what does it mean for a nation to be haunted?</p>
+  </div>
+</div>
+
+<div id="artModal" class="modal">
+  <div class="modal-inner">
+    <button class="modal-x">&times;</button>
+    <img class="mi" id="aImg" src="" alt="">
+    <div class="mt" id="aTitle"></div>
+    <div class="mm" id="aMeta"></div>
+    <div class="tags" id="aTags"></div>
+    <div class="notes" id="aNotes"></div>
+    <div id="aSrc"></div>
+  </div>
+</div>
+
+<div id="conModal" class="modal">
+  <div class="modal-inner">
+    <button class="modal-x">&times;</button>
+    <div class="ct" id="cThumbs"></div>
+    <div style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:0.85rem;color:rgba(255,215,0,0.5);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.8rem" id="cLabel"></div>
+    <div class="ca" id="cText"></div>
+    <div class="tags" id="cTags"></div>
+  </div>
+</div>
+
+<div id="themeModal" class="modal">
+  <div class="modal-inner">
+    <button class="modal-x">&times;</button>
+    <div class="mt" id="tTitle"></div>
+    <div class="notes" id="tText" style="font-style:normal"></div>
+  </div>
+</div>
+
+<script>
+const AW=[
+{id:0,title:"Menin Gate at Midnight",st:"Menin Gate at Midnight",year:1927,artist:"Will Longstaff",country:"Australia",alliance:"Allied",medium:"Oil on canvas",
+ img:"https://commons.wikimedia.org/wiki/Special:FilePath/Menin_Gate_at_midnight_(Will_Longstaff).jpg?width=1000",
+ src:"https://www.awm.gov.au/collection/C172234",
+ gt:["Landscape as Witness","Balance between Collective Death and Individual Identity"],
+ notes:"Will Longstaff painted Menin Gate at Midnight to commemorate those soldiers of the Australian War Memorial with no marked graves on the Western Front during the First World War. Longstaff attended the ceremony dedicating the Menin Gate memorial to 350,000 men of the British and Empire forces who had died in battles around Ypres, and claimed that night to have had a vision of spirits of the dead rising out of the soil around him. The canvas, painted almost entirely in hues of blue, shows a host of ghostly soldiers rendered in impressionistic outline marching before the pale memorial, while blood-red poppies strewn with traditional connotations of remembrance fill the foreground. The ghosts here are explicitly commemorative: in the years following WWI, the spiritualist overtones of the painting struck exactly the right chord with Australians who had lost family and friends in the war, and the work has since become a national icon of collective grief.",px:0.42,py:0.03},
+{id:1,title:"Ghosts of Vimy Ridge",st:"Ghosts of Vimy Ridge",year:1931,artist:"Will Longstaff",country:"Australia/Canada",alliance:"Allied",medium:"Oil on canvas",
+ img:"https://commons.wikimedia.org/wiki/Special:FilePath/Ghosts_of_Vimy_Ridge.jpeg?width=800",
+ src:"https://www.ourcommons.ca/heritage/en/collection/22632",
+ gt:["Landscape as Witness","Balance between Collective Death and Individual Identity"],
+ notes:"Ghosts of Vimy Ridge is an oil painting created by Australian artist William Longstaff in 1931. Longstaff was a veteran who served in the First World War, and his experiences in the war shaped his art as he began to regularly depict the afterlife of fallen soldiers in many of his pieces. In this piece, Longstaff depicts the ghostly aftermath of the Battle of Vimy Ridge, a battle in the First World War. This battle was launched by Canadian soldiers (Allied Forces) against the German Army (Central Powers) who held control of Vimy Ridge in Pas-de-Calais, France: the goal of this attack was to draw the German force\u2019s attention away from the French in order to prepare for a French offensive in another area. Ultimately, the Canadian forces won with casualties of approximately 3,600 soldiers.\n\nIn Longstaff\u2019s painting, The Ghosts of Vimy Ridge, he depicts the grim reality of how many Canadian forces were lost through their depiction as specters marching their way back to \u201ccamp,\u201d which is depicted in the painting by The Canadian National Vimy Memorial, a war memorial site designed by Walter Seymour Allward to commemorate Canadian Forces killed during the First World War. The painting is dark with ghostly pale soldiers dotting the landscape; however, there appears to be a light illuminating the monument, as if a beacon guiding the fallen soldiers back to rest.",px:0.82,py:0.03},
+{id:2,title:"Ghosts in a Tree",st:"Ghosts in a Tree",year:1933,artist:"Franz Sedlacek",country:"Austria",alliance:"Central Powers",medium:"Oil on wood",
+ img:"images/sedlacek-ghosts.jpg",
+ src:"https://flashbak.com/franz-sedlaceks-ghosts-in-a-tree-watch-over-austria-between-the-wars-464280/",
+ gt:["Landscape as Witness","The Ghost as Interior Condition","Ghosts as Witnesses to Unfinished Business"],
+ notes:"Franz Sedlacek fought in WWI at the Galicia and Isonzo fronts, and the psychological wreckage of that experience permeates his postwar painting. Ghosts on a Tree depicts a desolate, leafless tree under a darkened sky, inhabited by ghostly figures who seem to emerge from the branches themselves, their hollow eyes and ethereal forms evoking a deep sense of unease and otherworldliness. At a glance the figures resemble vultures, but closer inspection reveals hunched skeletal forms of hooded ghosts, while the contorted tree itself resembles veins or nerves of an interrupted lifeline or a decayed memory \u2014 a visual language shaped by the interwar anxiety of a veteran watching fascism rise around him. Where Longstaff\u2019s ghosts march in mourning toward a named monument, Sedlacek\u2019s haunt an unnamed, blighted landscape, their silence less a tribute than a warning.",px:0.02,py:0.60},
+{id:3,title:"Soldiers Marching Past Ruined Farm Buildings, Haunted by the Ghost of a Comrade, Western Front",st:"Soldiers Marching\u2026",year:"c.1918",artist:"Cecil C.P. Lawson",country:"England",alliance:"Allied",medium:"Oil on board",
+ img:"images/soldiers-marching.jpg",
+ src:"https://collection.nam.ac.uk/detail.php?acc=1989-04-133-1",
+ gt:["Hauntings of the Domestic Sphere","The Ghost as Interior Condition","Balance between Collective Death and Individual Identity"],
+ notes:"With the immense violence and death toll of the First World War, soldiers frequently reported seeing the ghosts of dead comrades, or angels come from the heavens to protect them. According to the National Army Museum in the UK, \u2018It became almost unpatriotic to doubt the veracity of such ghostly sightings.\u2019 Cecil Constant Philip Lawson served in the Westminster Dragoons shortly before and during World War I, stationed primarily in the Middle East. Lawson came from an artistic background, and used his painting skills to portray military subjects throughout his life. His work shows war from a soldier\u2019s perspective, including the haunting feeling of being surrounded by death and the fallen comrades who seemed to leave their mark among the living. In Soldiers Marching Past Ruined Farm Buildings, Haunted by the Ghost of a Comrade, Western Front, Lawson depicts the unglorious truth of war, combined with the heaviness of being surrounded by death and the ghosts of one\u2019s fellow soldiers.",px:0.02,py:0.03},
+{id:4,title:"Les Fant\u00f4mes (The Phantoms)",st:"Les Fant\u00f4mes",year:1935,artist:"Paul Landowski",country:"France",alliance:"Allied",medium:"Granite sculpture",
+ img:"https://commons.wikimedia.org/wiki/Special:FilePath/The_monument.JPG?width=800",
+ src:"https://en.wikipedia.org/wiki/Les_Fant%C3%B4mes_(Landowski)",
+ gt:["Balance between Collective Death and Individual Identity","Ghosts as Witnesses to Unfinished Business"],
+ notes:"Les Fant\u00f4mes is a granite monument created by French sculptor Paul Landowski in 1935 that rests upon the Butte de Chalmont in Northern France. This monument\u2019s location is where the outcome of the Second Battle of the Marne, the last German offensive of the First World War, was decided in 1918. In this battle, the German forces (Central Powers) attempted to divert French forces from Flanders to then make a stronger attack; however, the Allied forces were prepared for this, creating a strong counteroffensive consisting of French, British, American, and Italian forces that took the Germans by surprise and forced them to retreat. Overall, this battle was a turning point in the war for the Allied Forces.\n\nThis sculpture denotes where the Allied Forces departed to stage this attack. Landowski himself was a soldier for the French forces in the First World War and channeled his experience seeing the bloodshed and loss of the war into this memorial. The sculpture depicts seven soldiers, each from a different corps of the French army, along with a naked eighth figure who appears to be rising above the others as if a specter rising to the next stage of life. All eight figures have their eyes closed, look eerily uniform, and appear lifeless, evoking the anonymous mass death of the First World War. Rather than glorifying the triumph of this battle by the Allied Forces, this monument creates a somber reminder of the toll the war had, showcasing figures that look more like phantoms rather than victorious soldiers.",px:0.82,py:0.60},
+{id:5,title:"The Ghosts of the Slain",st:"The Ghosts of the Slain",year:1915,artist:"Joseph Southall",country:"England",alliance:"Allied",medium:"Woodcut illustrations (pamphlet)",
+ img:"images/ghosts-of-slain.jpg",
+ src:"https://quakertheology.org/joseph-southall-the-ghosts-of-the-slain/",
+ gt:["Ghosts as Tools of Moral Accusation","Ghosts as Witnesses to Unfinished Business","Balance between Collective Death and Individual Identity"],
+ notes:"Joseph Southall was a British artist who, as a Quaker pacifist, chose to focus his work on anti-war statements in response to World War I. Southall, who was over fifty years old when the war began, was too old to be conscripted, but was familiar with the plight of many other Quakers who were jailed for resisting the draft. His strongly held pacifist beliefs, combined with his anger over his fellow Quakers being punished for their peaceful beliefs, led Southall to create art that showed the pain and futility of war as an act of protest.\n\nSouthall partnered with a former member of Parliament, R. L. Outhwaite, to create a pamphlet criticizing the war called The Ghosts of the Slain. Southall\u2019s artwork in the pamphlet represents Outhwaite\u2019s Christian pacifist writing, with references to spiritual and Biblical imagery, including ghosts. In The Ghosts of the Slain, the ghosts of dead soldiers have come to confront the politicians who forced them into battle. Some of the soldiers have German helmets, showing a sense of international solidarity and the fact that, in death, all soldiers are equal victims of politics.",px:0.42,py:0.60}
+];
+
+const CN=[
+{a:0,b:1,label:"Companion Works",text:"[CONNECTION TEXT] These companion paintings by Longstaff form a diptych of landscape haunting across the Commonwealth."},
+{a:0,b:4,label:"Allied Memorial Haunting",text:"[CONNECTION TEXT] Both works memorialize mass death through spectral form."},
+{a:1,b:4,label:"National Memorial Haunting",text:"[CONNECTION TEXT] National memorial haunting: collective loss becomes collective remembrance."},
+{a:3,b:0,label:"Western Front, Allied Ghost",text:"[CONNECTION TEXT] English Allied tradition of spectral soldiers on the Western Front."},
+{a:5,b:3,label:"English Pacifist Tradition",text:"[CONNECTION TEXT] Both render ghosts as moral presences demanding remembrance."},
+{a:2,b:4,label:"Folklorized vs Monumental Ghost",text:"[CONNECTION TEXT] Central vs Allied: folk-tradition ghosts versus monumental collective."},
+{a:2,b:5,label:"Observer vs Accuser",text:"[CONNECTION TEXT] Ghost as observer and accuser across the divide."}
+];
+CN.forEach(c=>{const a=AW[c.a],b=AW[c.b];c.shared=a.gt.filter(t=>b.gt.includes(t))});
+
+const THEME_BLURBS={
+"Landscape as Witness":"Across these works, the ghost is not always a human figure but often the land itself. Trees, battlefields, and wrecked cityscapes appear saturated with spectral presence, as though the scale of WWI violence unmade the boundary between human death and the material world that absorbed it. The natural and built environments are not passive backdrops but active bearers of trauma, haunted in their own right. The earth and the city have not fully let go of the war, and the ghost lives as much in the ground and the ruins as it does in the returning soldier.",
+"Hauntings of the Domestic Sphere":"Although WWI killed young men by the millions on distant fronts, many of these works locate the ghost inside the home. Bedrooms, parlors, and familial scenes become primary sites of haunting, and widows and mothers are positioned as the figures who bear the spectral weight that public commemoration could not hold. This shifts the work of mourning out of the battlefield and the monument and into private, often gendered space. The implication is that the deepest aftereffects of the war were not always public and heroic but intimate and domestic, lived out in the rooms the dead used to inhabit.",
+"The Ghost as Interior Condition":"In many of these works, the ghost is not only an external apparition but a state of being that belongs to the living. Returning soldiers, grieving mothers, and civilian survivors are rendered as partially ghostly themselves, hollowed out or blurred at the edges by what they have witnessed. This is the \"living dead\" figure the Medium article points toward and the uncanny Freud named in 1919, and it marks the period's most significant conceptual shift: the haunting has moved inward, and the ghost is no longer a visitation from outside but a psychological condition the war has produced in those who survived it.",
+"Ghosts as Witnesses to Unfinished Business":"Across these works, the dead do not disappear into an afterlife or the great beyond: they linger, watch, or march as though they are still present amongst the living. Ghosts represented in the works are not the horror-movie ghosts that we commonly think of but rather a moral and emotional presence that provides evidence that the dead from WWI have not been properly mourned or accounted for.",
+"Ghosts as Tools of Moral Accusation":"These works do not just use ghosts to mourn - they also use them to indict those who promoted the war. Across the works, ghosts of those killed in WWI are reminders of the many lives lost, reminders of war's futility and the human cost that came from it, a sharp contrast from the common depiction of the glorification of war. In these works, the ghost becomes a figure of moral pressure on the living, reminding them of the true costs of the war.",
+"Balance between Collective Death and Individual Identity":"These works depict the losses from WWI, a war that killed at a scale that overwhelmed individual commemoration of lives lost, and these works grapple with that tension. Many of the works depict large groups of spectral soldiers or figures that symbolize the suffering of many rather than one; others in the collection, on the other hand, depict a single ghost haunting those who knew them. The juxtaposition between these two concepts suggest that artists at this time were pulled between two impulses: honoring the individual(s) lost and confronting the incomprehensible mass of loss."
+};
+
+// ---- STARS ----
+const cvs=document.getElementById("c"),ctx=cvs.getContext("2d");
+let W,H,stars=[];
+function resize(){W=cvs.width=window.innerWidth;H=cvs.height=window.innerHeight}
+function mkStars(){stars=[];for(let i=0;i<180;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+0.1,base:Math.random()*0.5+0.2,ph:Math.random()*Math.PI*2,fr:Math.random()*0.4+0.15,am:Math.random()*0.3+0.08})}
+resize();mkStars();
+window.addEventListener("resize",()=>{resize();mkStars();buildCards();drawLines()});
+
+// ---- FLOAT PARAMS ----
+const FP=[
+{xa:8,ya:6,xf:0.00008,yf:0.00006,xp:0,yp:0.5},
+{xa:6,ya:10,xf:0.00006,yf:0.00009,xp:1.2,yp:2.1},
+{xa:7,ya:7,xf:0.0001,yf:0.00007,xp:2.7,yp:0.8},
+{xa:10,ya:4,xf:0.00006,yf:0.00008,xp:4.1,yp:3.3},
+{xa:4,ya:9,xf:0.00009,yf:0.00005,xp:3.4,yp:1.6},
+{xa:8,ya:6,xf:0.00007,yf:0.0001,xp:1.9,yp:4.2}
+];
+
+// ---- DRAG STATE ----
+let dragIdx=null,dragOX=0,dragOY=0,dragMoved=false;
+const pinned=AW.map(()=>null); // {x,y} once dragged
+
+document.addEventListener("mousemove",e=>{
+  if(dragIdx===null)return;
+  const x=e.clientX-dragOX,y=e.clientY-dragOY;
+  if(!dragMoved&&(Math.abs(e.clientX-(pinned[dragIdx]?pinned[dragIdx].x+dragOX:dragOX))>4||Math.abs(e.clientY-(pinned[dragIdx]?pinned[dragIdx].y+dragOY:dragOY))>4))dragMoved=true;
+  pinned[dragIdx]={x,y};
+  cardEls[dragIdx].style.left=x+"px";
+  cardEls[dragIdx].style.top=y+"px";
+});
+document.addEventListener("mouseup",()=>{
+  if(dragIdx!==null){cardEls[dragIdx].classList.remove("dragging");cardEls[dragIdx].style.zIndex="";dragIdx=null;}
+});
+document.addEventListener("touchmove",e=>{
+  if(dragIdx===null)return;
+  e.preventDefault();
+  const t=e.touches[0];
+  const x=t.clientX-dragOX,y=t.clientY-dragOY;
+  dragMoved=true;
+  pinned[dragIdx]={x,y};
+  cardEls[dragIdx].style.left=x+"px";
+  cardEls[dragIdx].style.top=y+"px";
+},{passive:false});
+document.addEventListener("touchend",()=>{
+  if(dragIdx!==null){cardEls[dragIdx].classList.remove("dragging");cardEls[dragIdx].style.zIndex="";dragIdx=null;}
+});
+
+// ---- CARDS ----
+const cardContainer=document.getElementById("cards");
+let cardEls=[],expandedIdx=-1;
+function collapseAll(){if(expandedIdx>=0){cardEls[expandedIdx].classList.remove("expanded");expandedIdx=-1;}}
+function buildCards(){
+  cardContainer.innerHTML="";cardEls=[];expandedIdx=-1;
+  AW.forEach((a,i)=>{
+    const d=document.createElement("div");d.className="card";
+    const notesHtml=a.notes&&a.notes!=="[NOTES]"?a.notes:"";
+    d.innerHTML='<div class="img-wrap"><img src="'+a.img+'" alt="'+a.st+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="img-ph" style="display:none">'+a.st+'</div></div><div class="t">'+a.st+'</div><div class="m">'+a.artist+"<br>"+a.year+" · "+a.country+'<br><span class="pill '+(a.alliance==="Allied"?"al":"cp")+'">'+a.alliance+'</span></div><div class="card-notes">'+notesHtml+'</div>';
+    d.addEventListener("mousedown",e=>{
+      if(e.button!==0)return;
+      e.preventDefault();
+      dragMoved=false;dragIdx=i;
+      const r=d.getBoundingClientRect();
+      dragOX=e.clientX-r.left;dragOY=e.clientY-r.top;
+      d.classList.add("dragging");
+      d.style.zIndex=100;
+    });
+    d.addEventListener("touchstart",e=>{
+      dragMoved=false;dragIdx=i;
+      const t=e.touches[0],r=d.getBoundingClientRect();
+      dragOX=t.clientX-r.left;dragOY=t.clientY-r.top;
+      d.classList.add("dragging");d.style.zIndex=100;
+    },{passive:true});
+    d.addEventListener("click",()=>{
+      if(dragMoved)return;
+      if(expandedIdx===i){collapseAll();}
+      else{collapseAll();d.classList.add("expanded");expandedIdx=i;}
+    });
+    cardContainer.appendChild(d);cardEls.push(d);
+  });
+}
+buildCards();
+
+function cardCenter(i){const r=cardEls[i].getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+
+// ---- SVG LINES ----
+const svgEl=document.getElementById("lines");
+let lineEls=[];
+function drawLines(){
+  svgEl.innerHTML="";lineEls=[];
+  CN.forEach((c,ci)=>{
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    const hit=document.createElementNS("http://www.w3.org/2000/svg","line");hit.classList.add("hit");
+    const vis=document.createElementNS("http://www.w3.org/2000/svg","line");vis.classList.add("vis");
+    g.appendChild(hit);g.appendChild(vis);
+    g.addEventListener("click",()=>openCon(ci));
+    svgEl.appendChild(g);
+    lineEls.push({hit,vis,c});
+  });
+}
+drawLines();
+
+function updateLines(){
+  lineEls.forEach(({hit,vis,c})=>{
+    const a=cardCenter(c.a),b=cardCenter(c.b);
+    [hit,vis].forEach(el=>{el.setAttribute("x1",a.x);el.setAttribute("y1",a.y);el.setAttribute("x2",b.x);el.setAttribute("y2",b.y)});
+  });
+}
+
+// ---- MAIN LOOP ----
+function loop(ts){
+  // stars
+  const t=ts*0.001;
+  ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);
+  for(const s of stars){
+    const a=Math.max(0,Math.min(1,s.base+Math.sin(t*s.fr*Math.PI*2+s.ph)*s.am));
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle="rgba(255,255,220,"+a.toFixed(3)+")";ctx.fill();
+  }
+  // float cards
+  const NH=56,CW=260,CH=50;
+  AW.forEach((a,i)=>{
+    if(pinned[i]){
+      cardEls[i].style.left=pinned[i].x+"px";
+      cardEls[i].style.top=pinned[i].y+"px";
+      return;
+    }
+    const f=FP[i];
+    const bx=a.px*(W-CW);
+    const by=NH+a.py*(H-NH-CH);
+    const dx=Math.sin(ts*f.xf*Math.PI*2+f.xp)*f.xa;
+    const dy=Math.cos(ts*f.yf*Math.PI*2+f.yp)*f.ya;
+    cardEls[i].style.left=Math.round(bx+dx)+"px";
+    cardEls[i].style.top=Math.round(by+dy)+"px";
+  });
+  updateLines();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ---- MODALS ----
+function openArt(i){
+  const a=AW[i],m=document.getElementById("artModal");
+  const aImg=document.getElementById("aImg");
+  aImg.src=a.img;aImg.style.display="block";
+  aImg.onerror=function(){this.style.display="none"};
+  document.getElementById("aTitle").textContent=a.title;
+  document.getElementById("aMeta").innerHTML=a.artist+" &middot; "+a.year+" &middot; "+a.country+" &middot; "+a.medium+' <span class="pill '+(a.alliance==="Allied"?"al":"cp")+'">'+a.alliance+"</span>";
+  document.getElementById("aTags").innerHTML=a.gt.map(g=>'<span class="tag">'+g+"</span>").join("");
+  document.getElementById("aNotes").textContent=a.notes;
+  document.getElementById("aSrc").innerHTML='<a class="srcbtn" href="'+a.src+'" target="_blank" rel="noopener">View Source \u2197</a>';
+  m.classList.add("vis");
+}
+function openCon(ci){
+  const c=CN[ci],a1=AW[c.a],a2=AW[c.b],m=document.getElementById("conModal");
+  document.getElementById("cThumbs").innerHTML='<div><img src="'+a1.img+'" alt="'+a1.st+'"><p>'+a1.st+"</p></div><div><img src=\""+a2.img+'" alt="'+a2.st+'"><p>'+a2.st+"</p></div>";
+  document.getElementById("cLabel").textContent=c.label;
+  document.getElementById("cText").textContent=c.text;
+  const all=[...new Set([...a1.gt,...a2.gt])];
+  document.getElementById("cTags").innerHTML=all.map(g=>'<span class="tag'+(c.shared.includes(g)?" sh":"")+'">'+g+"</span>").join("");
+  m.classList.add("vis");
+}
+document.querySelectorAll(".modal-x").forEach(b=>b.addEventListener("click",()=>b.closest(".modal").classList.remove("vis")));
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("vis")}));
+
+// ---- NAV ----
+let curView="map";
+function showView(v){
+  curView=v;
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
+  document.getElementById("cards").style.display=v==="map"?"block":"none";
+  document.getElementById("lines").style.display=v==="map"?"block":"none";
+  document.getElementById("themes").classList.toggle("vis",v==="themes");
+  document.getElementById("about").classList.toggle("vis",v==="about");
+}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.v)));
+
+// ---- THEMES ----
+(function initThemes(){
+  const counts={};AW.forEach(a=>a.gt.forEach(g=>{counts[g]=(counts[g]||0)+1}));
+  const max=Math.max(...Object.values(counts));
+  const el=document.getElementById("bubs");
+  Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([tag,cnt])=>{
+    const b=document.createElement("div");b.className="bub";b.textContent=tag;
+    const sz=90+(cnt/max)*50;b.style.width=sz+"px";b.style.height=sz+"px";
+    b.addEventListener("click",()=>openTheme(tag));
+    el.appendChild(b);
+  });
+})();
+
+function openTheme(tag){
+  document.getElementById("tTitle").textContent=tag;
+  document.getElementById("tText").textContent=THEME_BLURBS[tag]||"";
+  document.getElementById("themeModal").classList.add("vis");
+}
+</script>
+</body>
+</html>
