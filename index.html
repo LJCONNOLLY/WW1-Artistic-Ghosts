@@ -41,12 +41,17 @@ nav button.active{color:#ffd700}
 .overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:40;display:none;background:rgba(0,0,0,0.95);overflow-y:auto;padding:5rem 2rem 3rem}
 .overlay.vis{display:block}
 .overlay h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;text-align:center;margin-bottom:2rem;color:rgba(255,255,255,0.85)}
+#themes h2{font-size:4rem}
+#themes .themes-sub{font-size:1.64rem !important}
 .bubbles{display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center;margin-bottom:3rem}
-.bub{border-radius:50%;background:rgba(255,255,200,0.08);border:1px solid rgba(255,255,200,0.25);display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.8rem;padding:1rem;cursor:pointer;transition:all 0.3s;color:rgba(255,255,255,0.7)}
+.bub{border-radius:50%;background:rgba(255,255,200,0.08);border:1px solid rgba(255,255,200,0.25);display:flex;align-items:center;justify-content:center;text-align:center;font-size:1.6rem;padding:1rem;cursor:pointer;transition:all 0.3s;color:rgba(255,255,255,0.7)}
 .bub:hover,.bub.act{background:rgba(255,255,200,0.18);border-color:rgba(255,215,0,0.5);color:#ffd700;transform:scale(1.08)}
 .contemp{max-width:650px;margin:2rem auto;border-left:2px solid rgba(255,255,200,0.2);padding-left:1.5rem}
-.contemp h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;margin-bottom:0.8rem;font-weight:300}
-.contemp p,.about-text p{font-size:0.92rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
+.contemp h3{font-family:'Cormorant Garamond',serif;font-size:2.8rem;margin-bottom:0.8rem;font-weight:300}
+.contemp p{font-size:1.84rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
+.about-text p{font-size:0.92rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
+#themeModal .mt{font-size:2.8rem}
+#themeModal .notes{font-size:1.8rem}
 .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}
 .modal.vis{display:flex}
 .modal-inner{background:#0c0a14;border:1px solid rgba(255,255,200,0.15);border-radius:4px;padding:1.8rem;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;position:relative}
@@ -83,7 +88,7 @@ nav button.active{color:#ffd700}
 
 <div id="themes" class="overlay">
   <h2>Overarching Themes</h2>
-  <p style="text-align:center;color:rgba(255,255,255,0.35);font-size:0.82rem;margin-bottom:2rem;letter-spacing:0.1em">Ghost typologies across the post-WWI artistic imagination</p>
+  <p class="themes-sub" style="text-align:center;color:rgba(255,255,255,0.35);margin-bottom:2rem;letter-spacing:0.1em">Ghost typologies across the post-WWI artistic imagination</p>
   <div class="bubbles" id="bubs"></div>
   <div class="contemp">
     <h3>The Modern Ghost Today</h3>
@@ -365,7 +370,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   const el=document.getElementById("bubs");
   Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([tag,cnt])=>{
     const b=document.createElement("div");b.className="bub";b.textContent=tag;
-    const sz=90+(cnt/max)*50;b.style.width=sz+"px";b.style.height=sz+"px";
+    const sz=180+(cnt/max)*100;b.style.width=sz+"px";b.style.height=sz+"px";
     b.addEventListener("click",()=>openTheme(tag));
     el.appendChild(b);
   });
