@@ -69,9 +69,6 @@ nav button.active{color:#ffd700}
 .pill{display:inline-block;border:1px solid;padding:0.15rem 0.5rem;font-size:1.1rem;letter-spacing:0.08em;text-transform:uppercase;margin-left:0.5rem}
 .pill.al{color:rgba(150,180,255,0.7);border-color:rgba(150,180,255,0.3)}
 .pill.cp{color:rgba(255,170,100,0.7);border-color:rgba(255,170,100,0.3)}
-#fi{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:25;display:none;align-items:center;gap:0.6rem;background:rgba(0,0,0,0.8);border:1px solid rgba(255,215,0,0.3);padding:0.35rem 1rem;font-size:0.75rem;color:rgba(255,215,0,0.7);letter-spacing:0.08em}
-#fi.vis{display:flex}
-#fi button{background:none;border:none;color:rgba(255,215,0,0.6);font-size:1rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -83,7 +80,6 @@ nav button.active{color:#ffd700}
 </nav>
 <svg id="lines"></svg>
 <div id="cards"></div>
-<div id="fi"><span>Filtered: <em id="fn"></em></span><button id="fx">&times;</button></div>
 
 <div id="themes" class="overlay">
   <h2>Overarching Themes</h2>
@@ -125,37 +121,45 @@ nav button.active{color:#ffd700}
   </div>
 </div>
 
+<div id="themeModal" class="modal">
+  <div class="modal-inner">
+    <button class="modal-x">&times;</button>
+    <div class="mt" id="tTitle"></div>
+    <div class="notes" id="tText" style="font-style:normal"></div>
+  </div>
+</div>
+
 <script>
 const AW=[
 {id:0,title:"Menin Gate at Midnight",st:"Menin Gate at Midnight",year:1927,artist:"Will Longstaff",country:"Australia",alliance:"Allied",medium:"Oil on canvas",
  img:"https://commons.wikimedia.org/wiki/Special:FilePath/Menin_Gate_at_midnight_(Will_Longstaff).jpg?width=1000",
  src:"https://www.awm.gov.au/collection/C172234",
- gt:["Landscape Haunting","Mass Haunting","Literal Specter"],
+ gt:["Landscape as Witness","Balance between Collective Death and Individual Identity"],
  notes:"Will Longstaff painted Menin Gate at Midnight to commemorate those soldiers of the Australian War Memorial with no marked graves on the Western Front during the First World War. Longstaff attended the ceremony dedicating the Menin Gate memorial to 350,000 men of the British and Empire forces who had died in battles around Ypres, and claimed that night to have had a vision of spirits of the dead rising out of the soil around him. The canvas, painted almost entirely in hues of blue, shows a host of ghostly soldiers rendered in impressionistic outline marching before the pale memorial, while blood-red poppies strewn with traditional connotations of remembrance fill the foreground. The ghosts here are explicitly commemorative: in the years following WWI, the spiritualist overtones of the painting struck exactly the right chord with Australians who had lost family and friends in the war, and the work has since become a national icon of collective grief.",px:0.42,py:0.03},
 {id:1,title:"Ghosts of Vimy Ridge",st:"Ghosts of Vimy Ridge",year:1931,artist:"Will Longstaff",country:"Australia/Canada",alliance:"Allied",medium:"Oil on canvas",
  img:"https://commons.wikimedia.org/wiki/Special:FilePath/Ghosts_of_Vimy_Ridge.jpeg?width=800",
  src:"https://www.ourcommons.ca/heritage/en/collection/22632",
- gt:["Landscape Haunting","Mass Haunting","Literal Specter"],
+ gt:["Landscape as Witness","Balance between Collective Death and Individual Identity"],
  notes:"Ghosts of Vimy Ridge is an oil painting created by Australian artist William Longstaff in 1931. Longstaff was a veteran who served in the First World War, and his experiences in the war shaped his art as he began to regularly depict the afterlife of fallen soldiers in many of his pieces. In this piece, Longstaff depicts the ghostly aftermath of the Battle of Vimy Ridge, a battle in the First World War. This battle was launched by Canadian soldiers (Allied Forces) against the German Army (Central Powers) who held control of Vimy Ridge in Pas-de-Calais, France: the goal of this attack was to draw the German force\u2019s attention away from the French in order to prepare for a French offensive in another area. Ultimately, the Canadian forces won with casualties of approximately 3,600 soldiers.\n\nIn Longstaff\u2019s painting, The Ghosts of Vimy Ridge, he depicts the grim reality of how many Canadian forces were lost through their depiction as specters marching their way back to \u201ccamp,\u201d which is depicted in the painting by The Canadian National Vimy Memorial, a war memorial site designed by Walter Seymour Allward to commemorate Canadian Forces killed during the First World War. The painting is dark with ghostly pale soldiers dotting the landscape; however, there appears to be a light illuminating the monument, as if a beacon guiding the fallen soldiers back to rest.",px:0.82,py:0.03},
 {id:2,title:"Ghosts in a Tree",st:"Ghosts in a Tree",year:1933,artist:"Franz Sedlacek",country:"Austria",alliance:"Central Powers",medium:"Oil on wood",
  img:"images/sedlacek-ghosts.jpg",
  src:"https://flashbak.com/franz-sedlaceks-ghosts-in-a-tree-watch-over-austria-between-the-wars-464280/",
- gt:["Literal Specter","Landscape Haunting","Folk/Naive"],
+ gt:["Landscape as Witness","The Ghost as Interior Condition","Ghosts as Witnesses to Unfinished Business"],
  notes:"Franz Sedlacek fought in WWI at the Galicia and Isonzo fronts, and the psychological wreckage of that experience permeates his postwar painting. Ghosts on a Tree depicts a desolate, leafless tree under a darkened sky, inhabited by ghostly figures who seem to emerge from the branches themselves, their hollow eyes and ethereal forms evoking a deep sense of unease and otherworldliness. At a glance the figures resemble vultures, but closer inspection reveals hunched skeletal forms of hooded ghosts, while the contorted tree itself resembles veins or nerves of an interrupted lifeline or a decayed memory \u2014 a visual language shaped by the interwar anxiety of a veteran watching fascism rise around him. Where Longstaff\u2019s ghosts march in mourning toward a named monument, Sedlacek\u2019s haunt an unnamed, blighted landscape, their silence less a tribute than a warning.",px:0.02,py:0.60},
 {id:3,title:"Soldiers Marching Past Ruined Farm Buildings, Haunted by the Ghost of a Comrade, Western Front",st:"Soldiers Marching\u2026",year:"c.1918",artist:"Cecil C.P. Lawson",country:"England",alliance:"Allied",medium:"Oil on board",
  img:"images/soldiers-marching.jpg",
  src:"https://collection.nam.ac.uk/detail.php?acc=1989-04-133-1",
- gt:["Literal Specter","Comrade Ghost","Domestic Haunting"],
+ gt:["Hauntings of the Domestic Sphere","The Ghost as Interior Condition","Balance between Collective Death and Individual Identity"],
  notes:"With the immense violence and death toll of the First World War, soldiers frequently reported seeing the ghosts of dead comrades, or angels come from the heavens to protect them. According to the National Army Museum in the UK, \u2018It became almost unpatriotic to doubt the veracity of such ghostly sightings.\u2019 Cecil Constant Philip Lawson served in the Westminster Dragoons shortly before and during World War I, stationed primarily in the Middle East. Lawson came from an artistic background, and used his painting skills to portray military subjects throughout his life. His work shows war from a soldier\u2019s perspective, including the haunting feeling of being surrounded by death and the fallen comrades who seemed to leave their mark among the living. In Soldiers Marching Past Ruined Farm Buildings, Haunted by the Ghost of a Comrade, Western Front, Lawson depicts the unglorious truth of war, combined with the heaviness of being surrounded by death and the ghosts of one\u2019s fellow soldiers.",px:0.02,py:0.03},
 {id:4,title:"Les Fant\u00f4mes (The Phantoms)",st:"Les Fant\u00f4mes",year:1935,artist:"Paul Landowski",country:"France",alliance:"Allied",medium:"Granite sculpture",
  img:"https://commons.wikimedia.org/wiki/Special:FilePath/The_monument.JPG?width=800",
  src:"https://en.wikipedia.org/wiki/Les_Fant%C3%B4mes_(Landowski)",
- gt:["Mass Haunting","Memorial","Collective Ghost"],
+ gt:["Balance between Collective Death and Individual Identity","Ghosts as Witnesses to Unfinished Business"],
  notes:"Les Fant\u00f4mes is a granite monument created by French sculptor Paul Landowski in 1935 that rests upon the Butte de Chalmont in Northern France. This monument\u2019s location is where the outcome of the Second Battle of the Marne, the last German offensive of the First World War, was decided in 1918. In this battle, the German forces (Central Powers) attempted to divert French forces from Flanders to then make a stronger attack; however, the Allied forces were prepared for this, creating a strong counteroffensive consisting of French, British, American, and Italian forces that took the Germans by surprise and forced them to retreat. Overall, this battle was a turning point in the war for the Allied Forces.\n\nThis sculpture denotes where the Allied Forces departed to stage this attack. Landowski himself was a soldier for the French forces in the First World War and channeled his experience seeing the bloodshed and loss of the war into this memorial. The sculpture depicts seven soldiers, each from a different corps of the French army, along with a naked eighth figure who appears to be rising above the others as if a specter rising to the next stage of life. All eight figures have their eyes closed, look eerily uniform, and appear lifeless, evoking the anonymous mass death of the First World War. Rather than glorifying the triumph of this battle by the Allied Forces, this monument creates a somber reminder of the toll the war had, showcasing figures that look more like phantoms rather than victorious soldiers.",px:0.82,py:0.60},
 {id:5,title:"The Ghosts of the Slain",st:"The Ghosts of the Slain",year:1915,artist:"Joseph Southall",country:"England",alliance:"Allied",medium:"Woodcut illustrations (pamphlet)",
  img:"images/ghosts-of-slain.jpg",
  src:"https://quakertheology.org/joseph-southall-the-ghosts-of-the-slain/",
- gt:["Pacifist Critique","Ghost as Witness","Mass Haunting"],
+ gt:["Ghosts as Tools of Moral Accusation","Ghosts as Witnesses to Unfinished Business","Balance between Collective Death and Individual Identity"],
  notes:"Joseph Southall was a British artist who, as a Quaker pacifist, chose to focus his work on anti-war statements in response to World War I. Southall, who was over fifty years old when the war began, was too old to be conscripted, but was familiar with the plight of many other Quakers who were jailed for resisting the draft. His strongly held pacifist beliefs, combined with his anger over his fellow Quakers being punished for their peaceful beliefs, led Southall to create art that showed the pain and futility of war as an act of protest.\n\nSouthall partnered with a former member of Parliament, R. L. Outhwaite, to create a pamphlet criticizing the war called The Ghosts of the Slain. Southall\u2019s artwork in the pamphlet represents Outhwaite\u2019s Christian pacifist writing, with references to spiritual and Biblical imagery, including ghosts. In The Ghosts of the Slain, the ghosts of dead soldiers have come to confront the politicians who forced them into battle. Some of the soldiers have German helmets, showing a sense of international solidarity and the fact that, in death, all soldiers are equal victims of politics.",px:0.42,py:0.60}
 ];
 
@@ -169,6 +173,15 @@ const CN=[
 {a:2,b:5,label:"Observer vs Accuser",text:"[CONNECTION TEXT] Ghost as observer and accuser across the divide."}
 ];
 CN.forEach(c=>{const a=AW[c.a],b=AW[c.b];c.shared=a.gt.filter(t=>b.gt.includes(t))});
+
+const THEME_BLURBS={
+"Landscape as Witness":"Across these works, the ghost is not always a human figure but often the land itself. Trees, battlefields, and wrecked cityscapes appear saturated with spectral presence, as though the scale of WWI violence unmade the boundary between human death and the material world that absorbed it. The natural and built environments are not passive backdrops but active bearers of trauma, haunted in their own right. The earth and the city have not fully let go of the war, and the ghost lives as much in the ground and the ruins as it does in the returning soldier.",
+"Hauntings of the Domestic Sphere":"Although WWI killed young men by the millions on distant fronts, many of these works locate the ghost inside the home. Bedrooms, parlors, and familial scenes become primary sites of haunting, and widows and mothers are positioned as the figures who bear the spectral weight that public commemoration could not hold. This shifts the work of mourning out of the battlefield and the monument and into private, often gendered space. The implication is that the deepest aftereffects of the war were not always public and heroic but intimate and domestic, lived out in the rooms the dead used to inhabit.",
+"The Ghost as Interior Condition":"In many of these works, the ghost is not only an external apparition but a state of being that belongs to the living. Returning soldiers, grieving mothers, and civilian survivors are rendered as partially ghostly themselves, hollowed out or blurred at the edges by what they have witnessed. This is the \"living dead\" figure the Medium article points toward and the uncanny Freud named in 1919, and it marks the period's most significant conceptual shift: the haunting has moved inward, and the ghost is no longer a visitation from outside but a psychological condition the war has produced in those who survived it.",
+"Ghosts as Witnesses to Unfinished Business":"Across these works, the dead do not disappear into an afterlife or the great beyond: they linger, watch, or march as though they are still present amongst the living. Ghosts represented in the works are not the horror-movie ghosts that we commonly think of but rather a moral and emotional presence that provides evidence that the dead from WWI have not been properly mourned or accounted for.",
+"Ghosts as Tools of Moral Accusation":"These works do not just use ghosts to mourn - they also use them to indict those who promoted the war. Across the works, ghosts of those killed in WWI are reminders of the many lives lost, reminders of war's futility and the human cost that came from it, a sharp contrast from the common depiction of the glorification of war. In these works, the ghost becomes a figure of moral pressure on the living, reminding them of the true costs of the war.",
+"Balance between Collective Death and Individual Identity":"These works depict the losses from WWI, a war that killed at a scale that overwhelmed individual commemoration of lives lost, and these works grapple with that tension. Many of the works depict large groups of spectral soldiers or figures that symbolize the suffering of many rather than one; others in the collection, on the other hand, depict a single ghost haunting those who knew them. The juxtaposition between these two concepts suggest that artists at this time were pulled between two impulses: honoring the individual(s) lost and confronting the incomprehensible mass of loss."
+};
 
 // ---- STARS ----
 const cvs=document.getElementById("c"),ctx=cvs.getContext("2d");
@@ -340,14 +353,12 @@ function showView(v){
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
   document.getElementById("cards").style.display=v==="map"?"block":"none";
   document.getElementById("lines").style.display=v==="map"?"block":"none";
-  document.getElementById("fi").classList.toggle("vis",v==="map"&&!!activeTheme);
   document.getElementById("themes").classList.toggle("vis",v==="themes");
   document.getElementById("about").classList.toggle("vis",v==="about");
 }
 document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.v)));
 
 // ---- THEMES ----
-let activeTheme=null;
 (function initThemes(){
   const counts={};AW.forEach(a=>a.gt.forEach(g=>{counts[g]=(counts[g]||0)+1}));
   const max=Math.max(...Object.values(counts));
@@ -355,29 +366,16 @@ let activeTheme=null;
   Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([tag,cnt])=>{
     const b=document.createElement("div");b.className="bub";b.textContent=tag;
     const sz=90+(cnt/max)*50;b.style.width=sz+"px";b.style.height=sz+"px";
-    b.addEventListener("click",()=>{
-      if(activeTheme===tag){clearFilter();return}
-      activeTheme=tag;
-      document.querySelectorAll(".bub").forEach(x=>x.classList.toggle("act",x.textContent===tag));
-      AW.forEach((_,i)=>{
-        const has=AW[i].gt.includes(tag);
-        cardEls[i].classList.toggle("dim",!has);cardEls[i].classList.toggle("hi",has);
-      });
-      document.getElementById("fn").textContent=tag;
-      document.getElementById("fi").classList.add("vis");
-      showView("map");
-    });
+    b.addEventListener("click",()=>openTheme(tag));
     el.appendChild(b);
   });
 })();
 
-function clearFilter(){
-  activeTheme=null;
-  cardEls.forEach(c=>{c.classList.remove("dim","hi")});
-  document.querySelectorAll(".bub").forEach(x=>x.classList.remove("act"));
-  document.getElementById("fi").classList.remove("vis");
+function openTheme(tag){
+  document.getElementById("tTitle").textContent=tag;
+  document.getElementById("tText").textContent=THEME_BLURBS[tag]||"";
+  document.getElementById("themeModal").classList.add("vis");
 }
-document.getElementById("fx").addEventListener("click",clearFilter);
 </script>
 </body>
 </html>
