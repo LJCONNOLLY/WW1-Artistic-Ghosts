@@ -12,7 +12,7 @@
 body{background:#000;color:#fff;font-family:'Spectral',serif;overflow:hidden;width:100vw;height:100vh}
 canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0}
 nav{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;gap:0;padding:1.2rem 2rem;background:linear-gradient(180deg,rgba(0,0,0,0.8)0%,transparent 100%)}
-nav button{background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:'Cormorant Garamond',serif;font-size:1rem;padding:0.4rem 1.2rem;transition:color 0.3s,text-shadow 0.3s;letter-spacing:0.05em}
+nav button{background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:'Cormorant Garamond',serif;font-size:2rem;padding:0.4rem 1.2rem;transition:color 0.3s,text-shadow 0.3s;letter-spacing:0.05em}
 nav button:hover{color:#fff;text-shadow:0 0 12px rgba(255,255,200,0.5)}
 nav button.active{color:#ffd700}
 #lines{position:fixed;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none}
@@ -43,8 +43,8 @@ nav button.active{color:#ffd700}
 .overlay h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;text-align:center;margin-bottom:1rem;color:rgba(255,255,255,0.85)}
 #themes h2{font-size:4rem}
 #themes .themes-sub{font-size:1.64rem !important;margin-bottom:1.5rem !important}
-.bubbles{display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center;margin-bottom:2rem}
-.bub{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c2 0%,#f2e27a 55%,#c8a94a 100%);border:1px solid rgba(255,243,150,0.7);display:flex;align-items:center;justify-content:center;text-align:center;font-size:1.25rem;padding:1rem;cursor:pointer;transition:all 0.3s;color:#000;box-shadow:0 0 40px rgba(255,240,160,0.3)}
+.bubbles{position:absolute;left:2rem;right:2rem;top:14rem;bottom:2rem}
+.bub{position:absolute;left:0;top:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c2 0%,#f2e27a 55%,#c8a94a 100%);border:1px solid rgba(255,243,150,0.7);display:flex;align-items:center;justify-content:center;text-align:center;font-size:1.25rem;padding:1rem;cursor:pointer;color:#000;box-shadow:0 0 40px rgba(255,240,160,0.3);transition:box-shadow 0.3s,border-color 0.3s,transform 0.3s}
 .bub:hover,.bub.act{background:radial-gradient(circle at 35% 30%,#fffadf 0%,#f7ea9a 55%,#d4b85a 100%);border-color:rgba(255,215,0,0.9);color:#000;transform:scale(1.08);box-shadow:0 0 60px rgba(255,240,160,0.55)}
 .about-text p{font-size:0.92rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
 #themeModal .mt{font-size:2.8rem}
@@ -318,6 +318,7 @@ function loop(ts){
     cardEls[i].style.top=Math.round(by+dy)+"px";
   });
   updateLines();
+  if(typeof updateBubbles==="function")updateBubbles(ts);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -360,15 +361,42 @@ function showView(v){
 document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.v)));
 
 // ---- THEMES ----
+const bubEls=[],bubFP=[],bubBase=[],BUB_SZ=260;
 (function initThemes(){
   const el=document.getElementById("bubs");
-  Object.keys(THEME_BLURBS).forEach(tag=>{
+  const tags=Object.keys(THEME_BLURBS);
+  const cols=Math.min(tags.length,5);
+  const rows=Math.ceil(tags.length/cols);
+  tags.forEach((tag,i)=>{
     const b=document.createElement("div");b.className="bub";b.textContent=tag;
-    const sz=260;b.style.width=sz+"px";b.style.height=sz+"px";
+    b.style.width=BUB_SZ+"px";b.style.height=BUB_SZ+"px";
     b.addEventListener("click",()=>openTheme(tag));
     el.appendChild(b);
+    bubEls.push(b);
+    const col=i%cols, row=Math.floor(i/cols);
+    bubBase.push({px:(col+0.5)/cols, py:(row+0.5)/Math.max(rows,1)});
+    bubFP.push({
+      xa:18+Math.random()*22, ya:14+Math.random()*18,
+      xf:0.00005+Math.random()*0.00008, yf:0.00005+Math.random()*0.00008,
+      xp:Math.random()*Math.PI*2, yp:Math.random()*Math.PI*2
+    });
   });
 })();
+function updateBubbles(ts){
+  if(!document.getElementById("themes").classList.contains("vis"))return;
+  const container=document.getElementById("bubs");
+  const r=container.getBoundingClientRect();
+  const maxX=Math.max(0,r.width-BUB_SZ), maxY=Math.max(0,r.height-BUB_SZ);
+  for(let i=0;i<bubEls.length;i++){
+    const base=bubBase[i], f=bubFP[i];
+    const bx=base.px*maxX;
+    const by=base.py*maxY;
+    const dx=Math.sin(ts*f.xf*Math.PI*2+f.xp)*f.xa;
+    const dy=Math.cos(ts*f.yf*Math.PI*2+f.yp)*f.ya;
+    bubEls[i].style.left=Math.round(bx+dx)+"px";
+    bubEls[i].style.top=Math.round(by+dy)+"px";
+  }
+}
 
 function openTheme(tag){
   document.getElementById("tTitle").textContent=tag;
