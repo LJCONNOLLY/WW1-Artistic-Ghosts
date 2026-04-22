@@ -504,7 +504,7 @@ const convNodes=[],convEdges=[],convEdgeEls=[];
   });
   const deg=convNodes.map(()=>0);
   convEdges.forEach(e=>{deg[e.a]++;deg[e.b]++;});
-  convNodes.forEach((n,i)=>{n.r=(n.type==="painting"?42:36)+Math.min(deg[i],6)*2;});
+  convNodes.forEach((n,i)=>{n.r=(n.type==="painting"?62:54)+Math.min(deg[i],6)*3;});
   convNodes.forEach((n,i)=>{
     const el=document.createElement("div");
     el.className="cn "+n.type;
@@ -515,7 +515,7 @@ const convNodes=[],convEdges=[],convEdgeEls=[];
       el.addEventListener("click",()=>openArt(n.idx));
     }else{
       el.textContent=n.label;
-      el.style.fontSize=(n.label.length>28?0.62:n.label.length>20?0.7:0.78)+"rem";
+      el.style.fontSize=(n.label.length>28?0.82:n.label.length>20?0.92:1.05)+"rem";
       el.addEventListener("click",()=>openTheme(n.tag));
     }
     el.addEventListener("mouseenter",()=>highlightConn(i,true));
