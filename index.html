@@ -32,6 +32,8 @@ nav button.active{color:#ffd700}
 .card .t{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#eee;margin-bottom:0.4rem;line-height:1.3}
 .card .m{font-size:1.4rem;color:rgba(255,255,255,0.45);line-height:1.6}
 .card-notes{display:none;font-size:0.82rem;color:rgba(255,255,255,0.5);line-height:1.75;margin-top:0.9rem;padding-top:0.8rem;border-top:1px solid rgba(255,255,200,0.12);white-space:pre-wrap;max-height:260px;overflow-y:auto}
+.card-tags{display:none;flex-wrap:wrap;gap:0.4rem;margin-top:0.8rem}
+.card.expanded .card-tags{display:flex}
 .card.expanded{width:360px;z-index:200}
 .card.expanded .img-wrap,.card.expanded img,.card.expanded .img-ph{height:360px}
 .card.expanded .t{font-size:2.5rem}
@@ -62,12 +64,12 @@ nav button.active{color:#ffd700}
 .tag.sh{background:rgba(255,215,0,0.12);border-color:rgba(255,215,0,0.4);color:#ffd700}
 .tag.clickable{cursor:pointer;transition:background 0.2s,border-color 0.2s,color 0.2s}
 .tag.clickable:hover{background:rgba(255,215,0,0.25);border-color:rgba(255,215,0,0.7);color:#ffd700}
-.theme-paintings{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:1.4rem}
-.theme-paintings-label{font-size:0.78rem;color:rgba(255,255,200,0.55);letter-spacing:0.12em;text-transform:uppercase;margin-top:1.4rem;margin-bottom:0.6rem}
-.tp-card{width:140px;cursor:pointer;border:1px solid rgba(255,255,200,0.18);border-radius:3px;overflow:hidden;background:#0e0b18;transition:border-color 0.3s,box-shadow 0.3s}
-.tp-card:hover{border-color:rgba(255,215,0,0.6);box-shadow:0 0 18px rgba(255,215,0,0.25)}
-.tp-card img{width:100%;height:100px;object-fit:cover;display:block;background:#111}
-.tp-card .tp-t{font-family:'Cormorant Garamond',serif;font-size:0.88rem;color:rgba(255,255,255,0.8);padding:0.5rem;text-align:center;line-height:1.25}
+.theme-paintings{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0;margin-bottom:1.2rem}
+.theme-paintings-label{font-size:0.72rem;color:rgba(255,255,200,0.55);letter-spacing:0.12em;text-transform:uppercase;margin-top:0.6rem;margin-bottom:0.4rem}
+.tp-card{width:108px;cursor:pointer;border:1px solid rgba(255,255,200,0.18);border-radius:3px;overflow:hidden;background:#0e0b18;transition:border-color 0.3s,box-shadow 0.3s}
+.tp-card:hover{border-color:rgba(255,215,0,0.6);box-shadow:0 0 14px rgba(255,215,0,0.22)}
+.tp-card img{width:100%;height:72px;object-fit:cover;display:block;background:#111}
+.tp-card .tp-t{font-family:'Cormorant Garamond',serif;font-size:0.78rem;color:rgba(255,255,255,0.8);padding:0.35rem 0.4rem;text-align:center;line-height:1.2}
 .notes{font-size:0.9rem;color:rgba(255,255,255,0.5);line-height:1.7;margin:1rem 0;font-style:italic;white-space:pre-wrap}
 .srcbtn{display:inline-block;border:1px solid rgba(255,255,200,0.25);padding:0.5rem 1.2rem;color:rgba(255,255,200,0.6);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:all 0.3s}
 .srcbtn:hover{background:rgba(255,255,200,0.08);color:#fff;border-color:rgba(255,255,200,0.5)}
@@ -131,9 +133,9 @@ nav button.active{color:#ffd700}
   <div class="modal-inner">
     <button class="modal-x">&times;</button>
     <div class="mt" id="tTitle"></div>
-    <div class="notes" id="tText" style="font-style:normal"></div>
     <div id="tPaintingsLabel" class="theme-paintings-label" style="display:none">Featured in</div>
     <div id="tPaintings" class="theme-paintings"></div>
+    <div class="notes" id="tText" style="font-style:normal"></div>
   </div>
 </div>
 
@@ -142,22 +144,22 @@ const AW=[
 {id:0,title:"Menin Gate at Midnight",st:"Menin Gate at Midnight",year:1927,artist:"Will Longstaff",country:"Australia",alliance:"Allied",medium:"Oil on canvas",
  img:"https://commons.wikimedia.org/wiki/Special:FilePath/Menin_Gate_at_midnight_(Will_Longstaff).jpg?width=1000",
  src:"https://www.awm.gov.au/collection/C172234",
- gt:["Landscape as Witness","Balance between Collective Death and Individual Identity"],
+ gt:["Landscape as Witness","Balance between Collective Death and Individual Identity","Sensory Reminders of Death"],
  notes:"Will Longstaff painted Menin Gate at Midnight to commemorate those soldiers of the Australian War Memorial with no marked graves on the Western Front during the First World War. Longstaff attended the ceremony dedicating the Menin Gate memorial to 350,000 men of the British and Empire forces who had died in battles around Ypres, and claimed that night to have had a vision of spirits of the dead rising out of the soil around him. The canvas, painted almost entirely in hues of blue, shows a host of ghostly soldiers rendered in impressionistic outline marching before the pale memorial, while blood-red poppies strewn with traditional connotations of remembrance fill the foreground. The ghosts here are explicitly commemorative: in the years following WWI, the spiritualist overtones of the painting struck exactly the right chord with Australians who had lost family and friends in the war, and the work has since become a national icon of collective grief.",px:0.42,py:0.03},
 {id:1,title:"Ghosts of Vimy Ridge",st:"Ghosts of Vimy Ridge",year:1931,artist:"Will Longstaff",country:"Australia/Canada",alliance:"Allied",medium:"Oil on canvas",
  img:"https://commons.wikimedia.org/wiki/Special:FilePath/Ghosts_of_Vimy_Ridge.jpeg?width=800",
  src:"https://www.ourcommons.ca/heritage/en/collection/22632",
- gt:["Landscape as Witness","Balance between Collective Death and Individual Identity"],
+ gt:["Landscape as Witness","Balance between Collective Death and Individual Identity","Sensory Reminders of Death"],
  notes:"Ghosts of Vimy Ridge is an oil painting created by Australian artist William Longstaff in 1931. Longstaff was a veteran who served in the First World War, and his experiences in the war shaped his art as he began to regularly depict the afterlife of fallen soldiers in many of his pieces. In this piece, Longstaff depicts the ghostly aftermath of the Battle of Vimy Ridge, a battle in the First World War. This battle was launched by Canadian soldiers (Allied Forces) against the German Army (Central Powers) who held control of Vimy Ridge in Pas-de-Calais, France: the goal of this attack was to draw the German force\u2019s attention away from the French in order to prepare for a French offensive in another area. Ultimately, the Canadian forces won with casualties of approximately 3,600 soldiers.\n\nIn Longstaff\u2019s painting, The Ghosts of Vimy Ridge, he depicts the grim reality of how many Canadian forces were lost through their depiction as specters marching their way back to \u201ccamp,\u201d which is depicted in the painting by The Canadian National Vimy Memorial, a war memorial site designed by Walter Seymour Allward to commemorate Canadian Forces killed during the First World War. The painting is dark with ghostly pale soldiers dotting the landscape; however, there appears to be a light illuminating the monument, as if a beacon guiding the fallen soldiers back to rest.",px:0.82,py:0.03},
 {id:2,title:"Ghosts in a Tree",st:"Ghosts in a Tree",year:1933,artist:"Franz Sedlacek",country:"Austria",alliance:"Central Powers",medium:"Oil on wood",
  img:"images/sedlacek-ghosts.jpg",
  src:"https://flashbak.com/franz-sedlaceks-ghosts-in-a-tree-watch-over-austria-between-the-wars-464280/",
- gt:["Landscape as Witness","The Ghost as Interior Condition","Ghosts as Witnesses to Unfinished Business"],
+ gt:["Landscape as Witness","The Ghost as Interior Condition","Ghosts as Witnesses to Unfinished Business","The Ghosts of Readjustment","Ghosts as a Trauma Response","Sensory Reminders of Death"],
  notes:"Franz Sedlacek fought in WWI at the Galicia and Isonzo fronts, and the psychological wreckage of that experience permeates his postwar painting. Ghosts on a Tree depicts a desolate, leafless tree under a darkened sky, inhabited by ghostly figures who seem to emerge from the branches themselves, their hollow eyes and ethereal forms evoking a deep sense of unease and otherworldliness. At a glance the figures resemble vultures, but closer inspection reveals hunched skeletal forms of hooded ghosts, while the contorted tree itself resembles veins or nerves of an interrupted lifeline or a decayed memory \u2014 a visual language shaped by the interwar anxiety of a veteran watching fascism rise around him. Where Longstaff\u2019s ghosts march in mourning toward a named monument, Sedlacek\u2019s haunt an unnamed, blighted landscape, their silence less a tribute than a warning.",px:0.02,py:0.60},
 {id:3,title:"Soldiers Marching Past Ruined Farm Buildings, Haunted by the Ghost of a Comrade, Western Front",st:"Soldiers Marching\u2026",year:"c.1918",artist:"Cecil C.P. Lawson",country:"England",alliance:"Allied",medium:"Oil on board",
  img:"images/soldiers-marching.jpg",
  src:"https://collection.nam.ac.uk/detail.php?acc=1989-04-133-1",
- gt:["Hauntings of the Domestic Sphere","The Ghost as Interior Condition","Balance between Collective Death and Individual Identity"],
+ gt:["Hauntings of the Domestic Sphere","The Ghost as Interior Condition","Balance between Collective Death and Individual Identity","The Ghosts of Readjustment","Ghosts as a Trauma Response"],
  notes:"With the immense violence and death toll of the First World War, soldiers frequently reported seeing the ghosts of dead comrades, or angels come from the heavens to protect them. According to the National Army Museum in the UK, \u2018It became almost unpatriotic to doubt the veracity of such ghostly sightings.\u2019 Cecil Constant Philip Lawson served in the Westminster Dragoons shortly before and during World War I, stationed primarily in the Middle East. Lawson came from an artistic background, and used his painting skills to portray military subjects throughout his life. His work shows war from a soldier\u2019s perspective, including the haunting feeling of being surrounded by death and the fallen comrades who seemed to leave their mark among the living. In Soldiers Marching Past Ruined Farm Buildings, Haunted by the Ghost of a Comrade, Western Front, Lawson depicts the unglorious truth of war, combined with the heaviness of being surrounded by death and the ghosts of one\u2019s fellow soldiers.",px:0.02,py:0.03},
 {id:4,title:"Les Fant\u00f4mes (The Phantoms)",st:"Les Fant\u00f4mes",year:1935,artist:"Paul Landowski",country:"France",alliance:"Allied",medium:"Granite sculpture",
  img:"https://commons.wikimedia.org/wiki/Special:FilePath/The_monument.JPG?width=800",
@@ -167,7 +169,7 @@ const AW=[
 {id:5,title:"The Ghosts of the Slain",st:"The Ghosts of the Slain",year:1915,artist:"Joseph Southall",country:"England",alliance:"Allied",medium:"Woodcut illustrations (pamphlet)",
  img:"images/ghosts-of-slain.jpg",
  src:"https://quakertheology.org/joseph-southall-the-ghosts-of-the-slain/",
- gt:["Ghosts as Tools of Moral Accusation","Ghosts as Witnesses to Unfinished Business","Balance between Collective Death and Individual Identity"],
+ gt:["Ghosts as Tools of Moral Accusation","Ghosts as Witnesses to Unfinished Business","Balance between Collective Death and Individual Identity","Sensory Reminders of Death"],
  notes:"Joseph Southall was a British artist who, as a Quaker pacifist, chose to focus his work on anti-war statements in response to World War I. Southall, who was over fifty years old when the war began, was too old to be conscripted, but was familiar with the plight of many other Quakers who were jailed for resisting the draft. His strongly held pacifist beliefs, combined with his anger over his fellow Quakers being punished for their peaceful beliefs, led Southall to create art that showed the pain and futility of war as an act of protest.\n\nSouthall partnered with a former member of Parliament, R. L. Outhwaite, to create a pamphlet criticizing the war called The Ghosts of the Slain. Southall\u2019s artwork in the pamphlet represents Outhwaite\u2019s Christian pacifist writing, with references to spiritual and Biblical imagery, including ghosts. In The Ghosts of the Slain, the ghosts of dead soldiers have come to confront the politicians who forced them into battle. Some of the soldiers have German helmets, showing a sense of international solidarity and the fact that, in death, all soldiers are equal victims of politics.",px:0.42,py:0.60}
 ];
 
@@ -250,7 +252,15 @@ function buildCards(){
   AW.forEach((a,i)=>{
     const d=document.createElement("div");d.className="card";
     const notesHtml=a.notes&&a.notes!=="[NOTES]"?a.notes:"";
-    d.innerHTML='<div class="img-wrap"><img src="'+a.img+'" alt="'+a.st+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="img-ph" style="display:none">'+a.st+'</div></div><div class="t">'+a.st+'</div><div class="m">'+a.artist+"<br>"+a.year+" · "+a.country+'<br><span class="pill '+(a.alliance==="Allied"?"al":"cp")+'">'+a.alliance+'</span></div><div class="card-notes">'+notesHtml+'</div>';
+    const tagsHtml=a.gt.map(g=>'<span class="tag'+(THEME_BLURBS[g]?" clickable":"")+'" data-theme="'+g.replace(/"/g,"&quot;")+'">'+g+"</span>").join("");
+    d.innerHTML='<div class="img-wrap"><img src="'+a.img+'" alt="'+a.st+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="img-ph" style="display:none">'+a.st+'</div></div><div class="t">'+a.st+'</div><div class="m">'+a.artist+"<br>"+a.year+" · "+a.country+'<br><span class="pill '+(a.alliance==="Allied"?"al":"cp")+'">'+a.alliance+'</span></div><div class="card-tags">'+tagsHtml+'</div><div class="card-notes">'+notesHtml+'</div>';
+    d.querySelectorAll(".card-tags .tag.clickable").forEach(t=>{
+      t.addEventListener("mousedown",e=>e.stopPropagation());
+      t.addEventListener("click",e=>{
+        e.stopPropagation();
+        openTheme(t.dataset.theme);
+      });
+    });
     d.addEventListener("mousedown",e=>{
       if(e.button!==0)return;
       e.preventDefault();
