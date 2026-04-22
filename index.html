@@ -51,6 +51,25 @@ nav button.active{color:#ffd700}
 .about-text p{font-size:0.92rem;color:rgba(255,255,255,0.55);line-height:1.75;margin-bottom:1rem}
 #themeModal .mt{font-size:2.8rem}
 #themeModal .notes{font-size:1.8rem}
+#conv{overflow:hidden}
+#conv h2{font-size:3rem}
+.conv-legend{display:flex;justify-content:center;gap:1.4rem;font-size:0.82rem;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem}
+.lg-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:0.4rem;vertical-align:middle}
+.lg-p{background:#7aa2ff;border:1px solid rgba(150,180,255,0.8);box-shadow:0 0 8px rgba(150,180,255,0.5)}
+.lg-t{background:#f2e27a;border:1px solid rgba(255,243,150,0.8);box-shadow:0 0 8px rgba(255,240,160,0.5)}
+.conv-edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.conv-edges line{stroke:rgba(255,240,160,0.2);stroke-width:1;transition:stroke 0.25s,stroke-width 0.25s}
+.conv-edges line.hi{stroke:rgba(255,215,0,0.8);stroke-width:2}
+.conv-nodes{position:absolute;top:0;left:0;width:100%;height:100%;z-index:2}
+.cn{position:absolute;cursor:pointer;transform:translate(-50%,-50%);transition:box-shadow 0.3s,border-color 0.3s;user-select:none}
+.cn:hover{z-index:5}
+.cn.painting{border-radius:50%;border:2px solid rgba(150,180,255,0.65);background-size:cover;background-position:center;background-color:#0e0b18;box-shadow:0 0 18px rgba(150,180,255,0.35)}
+.cn.painting:hover{border-color:rgba(150,180,255,1);box-shadow:0 0 28px rgba(150,180,255,0.7)}
+.cn.theme{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c2 0%,#f2e27a 55%,#c8a94a 100%);border:1px solid rgba(255,243,150,0.7);color:#000;display:flex;align-items:center;justify-content:center;text-align:center;padding:0.35rem;font-family:'Cormorant Garamond',serif;line-height:1.15;box-shadow:0 0 18px rgba(255,240,160,0.3)}
+.cn.theme:hover{box-shadow:0 0 28px rgba(255,240,160,0.7);border-color:rgba(255,215,0,1)}
+.cn.dim{opacity:0.22}
+.cn-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:0.35rem;font-family:'Cormorant Garamond',serif;font-size:0.78rem;color:rgba(255,255,255,0.85);text-align:center;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.2s;text-shadow:0 0 6px rgba(0,0,0,0.9)}
+.cn.painting:hover .cn-label{opacity:1}
 .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}
 .modal.vis{display:flex}
 .modal-inner{background:#0c0a14;border:1px solid rgba(255,255,200,0.15);border-radius:4px;padding:1.8rem;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;position:relative}
@@ -86,9 +105,10 @@ nav button.active{color:#ffd700}
 <body>
 <canvas id="c"></canvas>
 <nav>
+  <button data-v="about">About</button>
   <button class="active" data-v="map">Constellation</button>
   <button data-v="themes">Overarching Themes</button>
-  <button data-v="about">About</button>
+  <button data-v="conv">Conversation Map</button>
 </nav>
 <svg id="lines"></svg>
 <div id="cards"></div>
@@ -105,6 +125,14 @@ nav button.active{color:#ffd700}
     <p>Haunted Nations explores how artists across the WWI era visualized and processed collective trauma through the figure of the ghost. Whether as luminous specters rising from memorials, intimate companions haunting the living, or stone monuments refusing forgetting, these ghosts embody the inescapable return of the dead.</p>
     <p>This digital exhibit brings together six major works spanning Allied and Central Powers perspectives, from Australia to Austria, examining how different artistic traditions grappled with the haunting legacies of the Great War. By mapping thematic connections between artworks, we ask: what does it mean for a nation to be haunted?</p>
   </div>
+</div>
+
+<div id="conv" class="overlay">
+  <h2>Conversation Map</h2>
+  <p class="themes-sub" style="text-align:center;color:rgba(255,255,255,0.45);letter-spacing:0.1em;margin-bottom:1rem">How the paintings and themes connect</p>
+  <div class="conv-legend"><span class="lg-dot lg-p"></span> Painting <span class="lg-dot lg-t"></span> Theme</div>
+  <svg id="convEdges" class="conv-edges"></svg>
+  <div id="convNodes" class="conv-nodes"></div>
 </div>
 
 <div id="artModal" class="modal">
@@ -339,6 +367,7 @@ function loop(ts){
   });
   updateLines();
   if(typeof updateBubbles==="function")updateBubbles(ts);
+  if(typeof convTick==="function")convTick();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -391,6 +420,7 @@ function showView(v){
   document.getElementById("lines").style.display=v==="map"?"block":"none";
   document.getElementById("themes").classList.toggle("vis",v==="themes");
   document.getElementById("about").classList.toggle("vis",v==="about");
+  document.getElementById("conv").classList.toggle("vis",v==="conv");
 }
 document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.v)));
 
@@ -452,6 +482,114 @@ function openTheme(tag){
     tp.innerHTML="";
   }
   document.getElementById("themeModal").classList.add("vis");
+}
+
+// ---- CONVERSATION MAP ----
+const convNodes=[],convEdges=[],convEdgeEls=[];
+(function initConv(){
+  const nodesC=document.getElementById("convNodes");
+  const edgesC=document.getElementById("convEdges");
+  const themeKeys=Object.keys(THEME_BLURBS);
+  AW.forEach((a,i)=>{
+    convNodes.push({type:"painting",idx:i,label:a.st,img:a.img,x:600+Math.cos(i*1.1)*250,y:420+Math.sin(i*1.1)*180,vx:0,vy:0,r:46});
+  });
+  themeKeys.forEach((tag,j)=>{
+    convNodes.push({type:"theme",tag:tag,label:tag,x:600+Math.cos(j*0.75+0.4)*380,y:420+Math.sin(j*0.75+0.4)*240,vx:0,vy:0,r:42});
+  });
+  AW.forEach((a,i)=>{
+    a.gt.forEach(tag=>{
+      const tj=themeKeys.indexOf(tag);
+      if(tj>=0)convEdges.push({a:i,b:AW.length+tj});
+    });
+  });
+  const deg=convNodes.map(()=>0);
+  convEdges.forEach(e=>{deg[e.a]++;deg[e.b]++;});
+  convNodes.forEach((n,i)=>{n.r=(n.type==="painting"?42:36)+Math.min(deg[i],6)*2;});
+  convNodes.forEach((n,i)=>{
+    const el=document.createElement("div");
+    el.className="cn "+n.type;
+    el.style.width=(n.r*2)+"px";el.style.height=(n.r*2)+"px";
+    if(n.type==="painting"){
+      el.style.backgroundImage="url('"+n.img.replace(/'/g,"\\'")+"')";
+      el.innerHTML='<div class="cn-label">'+n.label+'</div>';
+      el.addEventListener("click",()=>openArt(n.idx));
+    }else{
+      el.textContent=n.label;
+      el.style.fontSize=(n.label.length>28?0.62:n.label.length>20?0.7:0.78)+"rem";
+      el.addEventListener("click",()=>openTheme(n.tag));
+    }
+    el.addEventListener("mouseenter",()=>highlightConn(i,true));
+    el.addEventListener("mouseleave",()=>highlightConn(i,false));
+    nodesC.appendChild(el);
+    n.el=el;
+  });
+  convEdges.forEach(e=>{
+    const ln=document.createElementNS("http://www.w3.org/2000/svg","line");
+    edgesC.appendChild(ln);
+    convEdgeEls.push(ln);
+  });
+  // pre-warm layout with assumed viewport
+  for(let i=0;i<220;i++)convSim(1280,720);
+})();
+function convSim(W,H){
+  const cx=W/2, cy=H/2+40;
+  for(let i=0;i<convNodes.length;i++){
+    const n=convNodes[i];
+    n.vx+=(cx-n.x)*0.004;
+    n.vy+=(cy-n.y)*0.004;
+  }
+  for(let i=0;i<convNodes.length;i++){
+    for(let j=i+1;j<convNodes.length;j++){
+      const a=convNodes[i],b=convNodes[j];
+      const dx=b.x-a.x,dy=b.y-a.y;
+      const d=Math.max(Math.sqrt(dx*dx+dy*dy),0.01);
+      const minD=a.r+b.r+24;
+      const f=Math.min(9000/(d*d), d<minD?4:1.5);
+      const fx=dx/d*f,fy=dy/d*f;
+      a.vx-=fx;a.vy-=fy;b.vx+=fx;b.vy+=fy;
+    }
+  }
+  for(const e of convEdges){
+    const a=convNodes[e.a],b=convNodes[e.b];
+    const dx=b.x-a.x,dy=b.y-a.y;
+    const d=Math.max(Math.sqrt(dx*dx+dy*dy),0.01);
+    const target=a.r+b.r+70;
+    const f=(d-target)*0.02;
+    const fx=dx/d*f,fy=dy/d*f;
+    a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy;
+  }
+  for(const n of convNodes){
+    const pad=n.r+16;
+    if(n.x<pad){n.x=pad;n.vx=Math.abs(n.vx)*0.3;}
+    else if(n.x>W-pad){n.x=W-pad;n.vx=-Math.abs(n.vx)*0.3;}
+    if(n.y<200){n.y=200;n.vy=Math.abs(n.vy)*0.3;}
+    else if(n.y>H-pad){n.y=H-pad;n.vy=-Math.abs(n.vy)*0.3;}
+    n.vx*=0.78;n.vy*=0.78;
+    n.x+=n.vx;n.y+=n.vy;
+  }
+}
+function convTick(){
+  const overlay=document.getElementById("conv");
+  if(!overlay.classList.contains("vis"))return;
+  const r=overlay.getBoundingClientRect();
+  convSim(r.width,r.height);
+  for(const n of convNodes){n.el.style.left=n.x+"px";n.el.style.top=n.y+"px";}
+  for(let i=0;i<convEdges.length;i++){
+    const a=convNodes[convEdges[i].a],b=convNodes[convEdges[i].b];
+    convEdgeEls[i].setAttribute("x1",a.x);
+    convEdgeEls[i].setAttribute("y1",a.y);
+    convEdgeEls[i].setAttribute("x2",b.x);
+    convEdgeEls[i].setAttribute("y2",b.y);
+  }
+}
+function highlightConn(idx,on){
+  const connected=new Set([idx]);
+  convEdges.forEach((e,i)=>{
+    const hit=e.a===idx||e.b===idx;
+    convEdgeEls[i].classList.toggle("hi",on&&hit);
+    if(hit){connected.add(e.a);connected.add(e.b);}
+  });
+  convNodes.forEach((n,i)=>{n.el.classList.toggle("dim",on&&!connected.has(i));});
 }
 </script>
 </body>
