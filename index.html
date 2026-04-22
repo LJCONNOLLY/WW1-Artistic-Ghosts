@@ -492,10 +492,10 @@ const convNodes=[],convEdges=[],convEdgeEls=[];
   const edgesC=document.getElementById("convEdges");
   const themeKeys=Object.keys(THEME_BLURBS);
   AW.forEach((a,i)=>{
-    convNodes.push({type:"painting",idx:i,label:a.st,img:a.img,x:600+Math.cos(i*1.1)*250,y:420+Math.sin(i*1.1)*180,vx:0,vy:0,r:46});
+    convNodes.push({type:"painting",idx:i,label:a.st,img:a.img,x:800+Math.cos(i*1.1)*320,y:460+Math.sin(i*1.1)*220,vx:0,vy:0,r:46});
   });
   themeKeys.forEach((tag,j)=>{
-    convNodes.push({type:"theme",tag:tag,label:tag,x:600+Math.cos(j*0.75+0.4)*380,y:420+Math.sin(j*0.75+0.4)*240,vx:0,vy:0,r:42});
+    convNodes.push({type:"theme",tag:tag,label:tag,x:800+Math.cos(j*0.75+0.4)*620,y:460+Math.sin(j*0.75+0.4)*320,vx:0,vy:0,r:42});
   });
   AW.forEach((a,i)=>{
     a.gt.forEach(tag=>{
@@ -530,22 +530,21 @@ const convNodes=[],convEdges=[],convEdgeEls=[];
     convEdgeEls.push(ln);
   });
   // pre-warm layout with assumed viewport
-  for(let i=0;i<220;i++)convSim(1280,720);
+  for(let i=0;i<320;i++)convSim(1600,820);
 })();
 function convSim(W,H){
   const cx=W/2, cy=H/2+40;
   for(let i=0;i<convNodes.length;i++){
     const n=convNodes[i];
-    n.vx+=(cx-n.x)*0.004;
-    n.vy+=(cy-n.y)*0.004;
+    n.vx+=(cx-n.x)*0.0013;
+    n.vy+=(cy-n.y)*0.0022;
   }
   for(let i=0;i<convNodes.length;i++){
     for(let j=i+1;j<convNodes.length;j++){
       const a=convNodes[i],b=convNodes[j];
       const dx=b.x-a.x,dy=b.y-a.y;
       const d=Math.max(Math.sqrt(dx*dx+dy*dy),0.01);
-      const minD=a.r+b.r+24;
-      const f=Math.min(9000/(d*d), d<minD?4:1.5);
+      const f=Math.min(32000/(d*d),6);
       const fx=dx/d*f,fy=dy/d*f;
       a.vx-=fx;a.vy-=fy;b.vx+=fx;b.vy+=fy;
     }
@@ -554,19 +553,35 @@ function convSim(W,H){
     const a=convNodes[e.a],b=convNodes[e.b];
     const dx=b.x-a.x,dy=b.y-a.y;
     const d=Math.max(Math.sqrt(dx*dx+dy*dy),0.01);
-    const target=a.r+b.r+70;
-    const f=(d-target)*0.02;
+    const target=a.r+b.r+170;
+    const f=(d-target)*0.014;
     const fx=dx/d*f,fy=dy/d*f;
     a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy;
   }
   for(const n of convNodes){
-    const pad=n.r+16;
+    const pad=n.r+20;
     if(n.x<pad){n.x=pad;n.vx=Math.abs(n.vx)*0.3;}
     else if(n.x>W-pad){n.x=W-pad;n.vx=-Math.abs(n.vx)*0.3;}
-    if(n.y<200){n.y=200;n.vy=Math.abs(n.vy)*0.3;}
+    if(n.y<220){n.y=220;n.vy=Math.abs(n.vy)*0.3;}
     else if(n.y>H-pad){n.y=H-pad;n.vy=-Math.abs(n.vy)*0.3;}
-    n.vx*=0.78;n.vy*=0.78;
+    n.vx*=0.82;n.vy*=0.82;
     n.x+=n.vx;n.y+=n.vy;
+  }
+  // hard no-overlap constraint
+  for(let pass=0;pass<4;pass++){
+    for(let i=0;i<convNodes.length;i++){
+      for(let j=i+1;j<convNodes.length;j++){
+        const a=convNodes[i],b=convNodes[j];
+        const dx=b.x-a.x,dy=b.y-a.y;
+        const d=Math.max(Math.sqrt(dx*dx+dy*dy),0.01);
+        const minD=a.r+b.r+10;
+        if(d<minD){
+          const push=(minD-d)*0.5;
+          const fx=dx/d*push,fy=dy/d*push;
+          a.x-=fx;a.y-=fy;b.x+=fx;b.y+=fy;
+        }
+      }
+    }
   }
 }
 function convTick(){
